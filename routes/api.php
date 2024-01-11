@@ -16,3 +16,6 @@ use App\Http\Controllers\ParserController;
 */
 
 Route::get('/parser', [ParserController::class, 'parse']);
+Route::get('/info', [ParserController::class, 'group_info']);
+Route::get('/add', [ParserController::class, 'add']);
+Route::get('/list', [ParserController::class, 'list']);
