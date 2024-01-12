@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ParserController;
+use App\Http\Controllers\ProvidersController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +16,11 @@ use App\Http\Controllers\ParserController;
 |
 */
 
+Route::controller(ProvidersController::class)->group(function(){
+    Route::get('providers.list', 'getList');
+    Route::get('providers.info', 'getInfo');
+    Route::get('providers.group.info', 'getGroupInfo');
+    Route::get('providers.group.add', 'addGroup');
+});
+
 Route::get('/parser', [ParserController::class, 'parse']);
-Route::get('/info', [ParserController::class, 'group_info']);
-Route::get('/add', [ParserController::class, 'add']);
-Route::get('/list', [ParserController::class, 'list']);

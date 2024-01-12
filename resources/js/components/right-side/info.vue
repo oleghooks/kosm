@@ -17,7 +17,7 @@ export default {
     methods: {
         info: async function(id){
             this.infoItem.items = [];
-            let url = '/api/parser?type=vk&id='+id;
+            let url = '/api/providers.info?id='+id;
             let response = await fetch(url);
             this.infoItem.items = await response.json();
         }
