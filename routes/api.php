@@ -21,6 +21,7 @@ Route::controller(ProvidersController::class)->group(function(){
     Route::get('providers.info', 'getInfo');
     Route::get('providers.group.info', 'getGroupInfo');
     Route::get('providers.group.add', 'addGroup');
+    Route::get('providers.test', 'test');
 });
 
 Route::get('/parser', [ParserController::class, 'parse']);

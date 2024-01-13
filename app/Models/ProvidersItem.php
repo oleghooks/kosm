@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProvidersItem extends Model
 {
-    protected $table = 'providers';
     protected $guarded = [];
 
     protected $casts = [

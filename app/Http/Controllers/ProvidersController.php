@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\ParserController;
+use App\Http\Facades\TimeConverter;
 use App\Models\Provide;
 use App\Models\ProvidersItem;
 use Illuminate\Http\Request;
@@ -17,31 +18,24 @@ class ProvidersController extends Controller
 
     public function getInfo(Request $request){
         $request->validate([
-            'id' => 'numeric|required'
+            'id' => 'numeric|required',
+            'order' => 'required'
         ]);
         $id = $request->input('id');
-
+        $order_by = $request->input('order');
         $provide = Provide::find($id);
-
-        $parse_id = $provide->type_id;
-        if($provide->is_group === 1)
-            $parse_id = "-".$parse_id;
-
-        if($provide->type === "vk"){
-            $response = ParserController::vk('wall.get', [
-                'owner_id' => $parse_id,
-                'count' => 100,
-            ]);
-            $response = json_decode($response);
-            foreach($response->response->items as &$item){
-                if($item->text === "" && isset($item->copy_history)){
-                    $item->text = $item->copy_history[0]->text;
-                    if(isset($item->copy_history[0]->attachments))
-                        $item->attachments = $item->copy_history[0]->attachments;
-                }
+        $items_response = [];
+        if($provide->id > 0){
+            $items = ProvidersItem::where('provide_id', $provide->id)
+                ->orderBy($order_by, 'DESC')
+                ->get();
+            foreach ($items as &$item) {
+                $item->attachments = json_decode($item->attachments);
+                $item->post_date = TimeConverter::Convert($item->post_date);
             }
-            return json_encode($response->response->items);
+            $items_response = $items;
         }
+        return $items_response;
     }
 
     public function getGroupInfo(Request $request){
@@ -74,12 +68,16 @@ class ProvidersController extends Controller
             $provide->last_parser = time();
             $provide->is_group = 1;
             $provide->save();
+            $this->updatePostsGroup($provide->id);
         }
         else
             $provide = Provide::where('type_id', $info->id)->first();
         return ['id' => $provide->id];
     }
 
+    public function test(Request $request){
+        $this->updatePostsGroup($request->input('id'));
+    }
     public function updatePostsGroup($id){
 
         $provide = Provide::find($id);
@@ -100,13 +98,31 @@ class ProvidersController extends Controller
                     if(isset($item->copy_history[0]->attachments))
                         $item->attachments = $item->copy_history[0]->attachments;
                 }
+                if($item->reposts->count === 0)
+                    $item->reposts->count = 1;
+                if($item->comments->count === 0)
+                    $item->comments->count = 1;
+                if($item->likes->count === 0)
+                    $item->likes->count = 1;
+                $popular = ceil($item->likes->count * $item->comments->count * $item->reposts->count * $item->views->count * $item->date / 1000000000);
+                //echo $popular."<br />";
                 //TODO:: Доделать здесь
                 $item_info = ProvidersItem::where('provide_id', $id)->where('post_id', $item->id)->first();
                 if(!isset($item_info->id)){
-                   /* ProvidersItem::create([
+                    ProvidersItem::create([
                         'provide_id' => $id,
+                        'text' => $item->text,
+                        'price' => 0,
+                        'attachments' => json_encode($item->attachments),
+                        'views' => $item->views->count,
+                        'comments' => $item->comments->count,
+                        'likes' => $item->likes->count,
+                        'reposts' => $item->reposts->count,
+                        'popular' => $popular,
+                        'post_id' => $item->id,
+                        'post_date' => $item->date,
+                    ]);
 
-                    ]);*/
                 }
             }
 

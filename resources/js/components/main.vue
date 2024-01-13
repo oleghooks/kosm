@@ -62,6 +62,6 @@ div[icon=home]{
     overflow-y: scroll;
 }
 body{
-    font-family: Roboto;
+    font-family: Arial;
 }
 </style>
