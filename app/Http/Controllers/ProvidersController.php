@@ -35,7 +35,9 @@ class ProvidersController extends Controller
             }
             $items_response = $items;
         }
-        return $items_response;
+        return [
+            'provider' => $provide,
+            'items' => $items_response];
     }
 
     public function getGroupInfo(Request $request){

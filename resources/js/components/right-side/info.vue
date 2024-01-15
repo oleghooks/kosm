@@ -11,6 +11,9 @@ export default {
             infoItem: {
                 items: {},
             },
+            infoProvider: {
+
+            },
             currentInfoItem: false,
             currentInfoItemAttach: 0,
             currentOrder: 'popular',
@@ -21,9 +24,12 @@ export default {
         info: async function(id){
             this.currentId = id;
             this.infoItem.items = [];
+            this.infoProvider = {};
             let url = '/api/providers.info?id='+id+'&order='+this.currentOrder;
             let response = await fetch(url);
-            this.infoItem.items = await response.json();
+            response = await response.json()
+            this.infoItem.items = response.items;
+            this.infoProvider = response.provider;
         }
     },
     mounted() {
@@ -39,6 +45,18 @@ export default {
 </script>
 
 <template>
+    <dvi class="provide_info" v-if="infoProvider.id > 0">
+        <div class="provide_info_icon" style="width: 70px;"><img :src="infoProvider.icon"></div>
+        <div style="line-height: 31px;width: calc(70% - 100px);">
+            <div class="provide_info_title">{{infoProvider.name}}</div>
+            <div class="provide_info_min_summ">Минимальная сумма для заказа: {{infoProvider.min_summ}} руб</div>
+        </div>
+        <div style="width: 30%; display: flex;">
+            <div>Последнее обновление : </div>
+            <div><button>Обновить посты</button></div>
+
+        </div>
+    </dvi>
     <div style="display: flex" class="orders" v-if="infoItem.items.length > 0">
         <div :class="{'order_active': currentOrder === 'post_date'}" v-on:click="currentOrder = 'post_date'; info(currentId);">По дате</div>
         <div :class="{'order_active': currentOrder === 'popular'}" v-on:click="currentOrder = 'popular'; info(currentId);">По популярности</div>
@@ -75,9 +93,32 @@ export default {
 </template>
 
 <style>
+.provide_info{
+    display: flex;
+    border-bottom: 1px solid #bbb;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.provide_info_icon{
+    margin-right: 15px;
+}
+.provide_info_icon img{
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+}
+.provide_info_title{
+    font-weight: bold;
+    color: #5caafa;
+}
+.provide_info_min_summ{
+    color: #bbb;
+    font-weight: bold;
+}
 .info-item-stats{
     width: 100%;
-    background: #8bbdd1;
+    background: #8bbdd14d;
+
     padding: 10px;
     color: #18354e;
     font-weight: bold;
@@ -85,8 +126,9 @@ export default {
 .info-item-stats > div{
     padding: 4px 16px;
     margin-right: 15px;
-    background: #3c95ee;
+    background: #2b5f92;
     border-radius: 5px;
+    color: white;
 }
 .orders > div{
     padding: 10px;
