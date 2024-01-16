@@ -29,6 +29,12 @@ class ProvidersController extends Controller
             $items = ProvidersItem::where('provide_id', $provide->id)
                 ->orderBy($order_by, 'DESC')
                 ->get();
+            if(count($items) === 0){
+                $this->updatePostsGroup($id);
+                $items = ProvidersItem::where('provide_id', $provide->id)
+                    ->orderBy($order_by, 'DESC')
+                    ->get();
+            }
             foreach ($items as &$item) {
                 $item->attachments = json_decode($item->attachments);
                 $item->post_date = TimeConverter::Convert($item->post_date);
@@ -78,7 +84,7 @@ class ProvidersController extends Controller
     }
 
     public function test(Request $request){
-        $this->updatePostsGroup($request->input('id'));
+        $this->getTextImage("https://sun9-44.userapi.com/impg/rCUKlqxv9qrtVNX7ckKss8zFh0cilA-PPEcWnQ/A0Yo6SZtnCk.jpg?size=510x643&quality=95&sign=26ca6650987bda4aceff502495f58352&c_uniq_tag=1FY7r3Oird6rZYqLztBzPUMtCGuNUgyeHqTh0ylQorU&type=album", "1 шт.");
     }
     public function updatePostsGroup($id){
 
@@ -129,5 +135,28 @@ class ProvidersController extends Controller
             }
 
         }
+    }
+
+    public function getTextImage($filename, $text){
+        // наше изображение
+        $img = ImageCreateFromJPEG($filename);
+
+        // определяем цвет, в RGB
+        $color = imagecolorallocate($img, 255, 0, 0);
+
+        // указываем путь к шрифту
+        $font = 'C:\OpenServer\domains\kosm\public\fonts\arial_bolditalicmt.ttf';
+
+        $text = urldecode($text);
+        imagefilledrectangle($img, 345, 129, 500, 170, imagecolorallocate($img, 0, 0, 0));
+        imagettftext($img, 24, 0, 365, 159, $color, $font, $text);
+        // 24 - размер шрифта
+        // 0 - угол поворота
+        // 365 - смещение по горизонтали
+        // 159 - смещение по вертикали
+
+        header('Content-type: image/jpeg');
+        imagejpeg($img, NULL, 100);
+
     }
 }

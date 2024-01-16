@@ -1,11 +1,40 @@
 <script>
 import list from "./left-side/list.vue";
 import info from "./right-side/info.vue";
+import {watch} from "vue";
+import useEventsBus from "@/EventBus.js";
 
 export default {
+
+    data(){
+        return{
+            cart_items: {
+
+            }
+        }
+    },
     components: {
         'list': list,
         'info': info,
+    },
+    methods: {
+        cart_add: function(item_id, attach_index, count, price){
+            this.items.push({
+                item_id: item_id,
+                attach_index: attach_index,
+                count: count,
+                price: price
+            });
+        }
+    },
+    mounted() {
+        const { bus } = useEventsBus()
+
+        watch(()=>bus.value.get('cart_add'), (val) => {
+            // destruct the parameters
+            const [item] = val ?? [];
+            this.cart_add(item.item_id, item.attach_index, item.count, item.price);
+        })
     }
 }
 </script>
@@ -19,7 +48,7 @@ export default {
             <list></list>
         </div>
         <div class="right-side">
-            <info></info>
+            <info cart_items="cart_items"></info>
         </div>
     </div>
 </template>
