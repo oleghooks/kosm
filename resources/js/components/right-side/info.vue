@@ -48,6 +48,7 @@ export default {
         info: async function(id){
             this.currentId = id;
             this.calcCartItems();
+            this.type = 'posts';
             this.infoItem.items = [];
             this.infoProvider = {};
             let url = '/api/providers.info?id='+id+'&order='+this.currentOrder;

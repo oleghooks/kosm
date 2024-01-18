@@ -29,7 +29,7 @@ class ProvidersController extends Controller
             $items = ProvidersItem::where('provide_id', $provide->id)
                 ->orderBy($order_by, 'DESC')
                 ->get();
-            if(count($items) === 0){
+            if(count($items) === 0 or (time() - $provide->last_parser) > 86400){
                 $this->updatePostsGroup($id);
                 $items = ProvidersItem::where('provide_id', $provide->id)
                     ->orderBy($order_by, 'DESC')
@@ -93,7 +93,8 @@ class ProvidersController extends Controller
         $parse_id = $provide->type_id;
         if($provide->is_group === 1)
             $parse_id = "-".$parse_id;
-
+        $provide->last_parser = time();
+        $provide->save();
         if($provide->type === "vk"){
             $response = ParserController::vk('wall.get', [
                 'owner_id' => $parse_id,

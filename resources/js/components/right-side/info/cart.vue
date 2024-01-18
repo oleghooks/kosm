@@ -38,12 +38,18 @@ export default {
 </script>
 
 <template>
-    <div style="display: flex;">
+    <div style="display: flex;     flex-wrap: wrap;">
         <div  class="info-item" v-for="(item, index) in cart_items">
 
-            <div v-on:click="changeCurrentInfoItem(infoItem.items.findIndex(item_full => item_full.id === item.item_id), item.attach_index)">
-                <img :src="infoItem.items.find(item_full => item_full.id === item.item_id)?.attachments[item.attach_index]?.photo?.sizes[2]?.url">
-                <div class="price">{{item.count}} шт. x {{item.price}} руб.</div>
+            <div>
+                <img v-on:click="changeCurrentInfoItem(infoItem.items.findIndex(item_full => item_full.id === item.item_id), item.attach_index)" :src="infoItem.items.find(item_full => item_full.id === item.item_id)?.attachments[item.attach_index]?.photo?.sizes[2]?.url">
+                <div class="price">
+                    <button v-on:click="cart_items[index].count--;">-</button>
+                    <input type="text" v-model="cart_items[index].count">
+                    <button v-on:click="cart_items[index].count++;">+</button>
+                    по
+                    <input type="text" v-model="cart_items[index].price"> <b>руб.</b>
+                </div>
             </div>
 
         </div>
@@ -52,11 +58,27 @@ export default {
 </template>
 
 <style scoped>
+.price input[type=text]{
+    width: 27px;
+    text-align: center;
+    border: 0px;
+    padding: 3px;
+    background: #50abf9;
+    color: white;
+    outline: none;
+}
 .info-item{
+    width: 180px;
     margin: 5px;
-    padding: 10px;
     border: 1px solid #bbb;
     text-align: center;
+    padding: 10px;
+}
+.info-item .price{
+    background: #2274bb;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
 }
 .info-item:hover{
     border: 1px solid #626262;
@@ -64,6 +86,8 @@ export default {
 }
 .info-item img{
     margin-bottom: 10px;
+    border-radius: 7px;
+    max-height: 157px;
 }
 .all_summ{
     padding: 10px;
