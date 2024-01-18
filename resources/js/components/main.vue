@@ -8,9 +8,8 @@ export default {
 
     data(){
         return{
-            cart_items: {
+            cart_items: []
 
-            }
         }
     },
     components: {
@@ -18,12 +17,13 @@ export default {
         'info': info,
     },
     methods: {
-        cart_add: function(item_id, attach_index, count, price){
-            this.items.push({
+        cart_add: function(item_id, attach_index, count, price, provide_id){
+            this.cart_items.push({
                 item_id: item_id,
                 attach_index: attach_index,
                 count: count,
-                price: price
+                price: price,
+                provide_id: provide_id
             });
         }
     },
@@ -32,7 +32,7 @@ export default {
 
         watch(()=>bus.value.get('cart_add'), (val) => {
             // destruct the parameters
-            const [item] = val ?? [];
+            let [item] = val ?? [];
             this.cart_add(item.item_id, item.attach_index, item.count, item.price);
         })
     }
@@ -45,10 +45,10 @@ export default {
             <div icon="home"></div>
         </div>
         <div class="left-side">
-            <list></list>
+            <list :cart_items="cart_items"></list>
         </div>
         <div class="right-side">
-            <info cart_items="cart_items"></info>
+            <info :cart_items="cart_items" :cart_add_main="cart_add"></info>
         </div>
     </div>
 </template>
