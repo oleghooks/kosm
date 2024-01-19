@@ -8,13 +8,27 @@ export default {
 
     data(){
         return{
-            cart_items: []
-
+            cart_items: [],
+            isLoad: false,
         }
     },
     components: {
         'list': list,
         'info': info,
+    },
+    watch: {
+        cart_items: {
+            async handler(newCartItems){
+                let response = await fetch('/api/cart.update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8'
+                    },
+                    body: JSON.stringify({cart: newCartItems})
+                });
+            },
+            deep: true
+        }
     },
     methods: {
         cart_add: function(item_id, attach_index, count, price, provide_id){
@@ -25,21 +39,32 @@ export default {
                 price: price,
                 provide_id: provide_id
             });
+        },
+        cart_list: async function(){
+           let response = await fetch('/api/cart.list');
+           this.cart_items = await response.json();
         }
     },
     mounted() {
-        const { bus } = useEventsBus()
-
+        this.cart_list();
+        const { bus } = useEventsBus();
         watch(()=>bus.value.get('cart_add'), (val) => {
             // destruct the parameters
             let [item] = val ?? [];
             this.cart_add(item.item_id, item.attach_index, item.count, item.price);
+        })
+        watch(()=>bus.value.get('is_load_show'), (val) => {
+            this.isLoad = true;
+        })
+        watch(()=>bus.value.get('is_load_hidden'), (val) => {
+            this.isLoad = false;
         })
     }
 }
 </script>
 
 <template>
+
     <div class="main">
         <div class="menu">
             <div icon="home"></div>
@@ -48,12 +73,27 @@ export default {
             <list :cart_items="cart_items"></list>
         </div>
         <div class="right-side">
+            <div class="load-page" :class="{'display-block': isLoad}"></div>
             <info :cart_items="cart_items" :cart_add_main="cart_add"></info>
         </div>
     </div>
 </template>
 
 <style>
+.load-page{
+    position: fixed;
+    width: -webkit-fill-available;
+    height: -webkit-fill-available;
+    background: #fff;
+    display: block;
+    background-image: url(/img/icons/load.gif);
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    display: none;
+}
+.display-block{
+    display: block;
+}
 body{
     margin: 0px;
     height: 100%;
@@ -92,5 +132,17 @@ div[icon=home]{
 }
 body{
     font-family: Arial;
+}
+button.button{
+    background: #4387c9;
+    color: white;
+    font-weight: bold;
+    border: 0px;
+    border-radius: 3px;
+    padding: 5px 10px
+}
+button.button:hover{
+    background: #2b5f92;
+    cursor: pointer;
 }
 </style>

@@ -8,11 +8,12 @@ export default {
             handler(newCartItems, oldCartItems){
                 this.providers_count_carts = {};
                 newCartItems.forEach((item) => {
-                    if(this.providers_count_carts[item.provide_id])
+                    if (this.providers_count_carts[item.provide_id])
                         this.providers_count_carts[item.provide_id]++;
                     else
                         this.providers_count_carts[item.provide_id] = 1;
                 });
+
             },
             deep: true
         }

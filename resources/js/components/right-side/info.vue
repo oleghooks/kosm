@@ -46,6 +46,7 @@ export default {
             }
         },
         info: async function(id){
+            emit('is_load_show');
             this.currentId = id;
             this.calcCartItems();
             this.type = 'posts';
@@ -56,6 +57,7 @@ export default {
             response = await response.json()
             this.infoItem.items = response.items;
             this.infoProvider = response.provider;
+            emit('is_load_hidden');
         },
         cart_add: function(item_id, attach_index, count, price){
             this.cart_add_main(
@@ -93,19 +95,17 @@ export default {
 <template>
     <provide-info :infoProvider="infoProvider"/>
 
-    <div class="provider-menu" v-if="infoItem.items.length > 0">
-        <div v-on:click="type = 'posts'" :class="{'active': type === 'posts'}">Посты группы</div>
-        <div v-on:click="type = 'cart'" :class="{'active': type === 'cart'}">Корзина <span v-if="count_cart > 0">{{count_cart}}</span></div>
+    <div style="display:flex; height: calc(100% - 95px);">
+        <posts :currentOrder="currentOrder" :infoItem="infoItem" :changeCurrentInfoItem="changeCurrentInfoItem" :changeOrder="changeOrder" />
+        <cart  :infoItem="infoItem" :cart_items="cart_items" :changeCurrentInfoItem="changeCurrentInfoItem" :provide_id="currentId" />
     </div>
-
-    <cart v-if="type === 'cart'" :infoItem="infoItem" :cart_items="cart_items" :changeCurrentInfoItem="changeCurrentInfoItem" />
-
-    <posts v-if="type === 'posts'" :currentOrder="currentOrder" :infoItem="infoItem" :changeCurrentInfoItem="changeCurrentInfoItem" :changeOrder="changeOrder" />
-
     <full_info :currentInfoItem="currentInfoItem" :infoItem="infoItem?.items[currentInfoItem]" :cart_items="cart_items" :cart_add="cart_add" />
 </template>
 
 <style>
+.right-side{
+    overflow-y: hidden!important;
+}
 .provider-menu{
     display: flex;
     padding: 10px 0px;

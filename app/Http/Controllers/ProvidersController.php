@@ -138,15 +138,15 @@ class ProvidersController extends Controller
         }
     }
 
-    public function getTextImage($filename, $text){
+    public static function getTextImage($filename, $text){
         // наше изображение
         $img = ImageCreateFromJPEG($filename);
-
+        var_dump(__DIR__);
         // определяем цвет, в RGB
         $color = imagecolorallocate($img, 255, 0, 0);
 
         // указываем путь к шрифту
-        $font = 'C:\OpenServer\domains\kosm\public\fonts\arial_bolditalicmt.ttf';
+        $font = 'C:\OpenServer\domains\kosm\resources\fonts\arial_bolditalicmt.ttf';
 
         $text = urldecode($text);
         imagefilledrectangle($img, 345, 129, 500, 170, imagecolorallocate($img, 0, 0, 0));
@@ -155,9 +155,9 @@ class ProvidersController extends Controller
         // 0 - угол поворота
         // 365 - смещение по горизонтали
         // 159 - смещение по вертикали
-
-        header('Content-type: image/jpeg');
-        imagejpeg($img, NULL, 100);
+        $name = '../public/tmp/'.md5(rand(0, 999999).rand(0, 999999).rand(0, 999999)).'.jpg';
+        imagejpeg($img, $name, 100);
+        return $name;
 
     }
 }

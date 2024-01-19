@@ -13,11 +13,7 @@ export default {
             <div class="provide_info_title">{{infoProvider.name}}</div>
             <div class="provide_info_min_summ">Минимальная сумма для заказа: {{infoProvider.min_summ}} руб</div>
         </div>
-        <div style="width: 30%; display: flex;">
-            <div>Последнее обновление : </div>
-            <div><button>Обновить посты</button></div>
 
-        </div>
     </div>
 </template>
 

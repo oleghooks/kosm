@@ -24,4 +24,11 @@ Route::controller(ProvidersController::class)->group(function(){
     Route::get('providers.test', 'test');
 });
 
+Route::controller(\App\Http\Controllers\CartController::class)->group(function(){
+    Route::post('cart.update', 'update');
+    Route::get('cart.list', 'list');
+    Route::get('cart.make', 'make');
+
+});
+
 Route::get('/parser', [ParserController::class, 'parse']);
