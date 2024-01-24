@@ -54,6 +54,7 @@ class ProvidersController extends Controller
 
         $parse_type = $request->input('type');
         $parse_id = $request->input('id');
+        $parse_id = str_replace('https://vk.com/', '', $parse_id);
 
         if($parse_type === 'vk'){
             return ParserController::vk('groups.getById', [

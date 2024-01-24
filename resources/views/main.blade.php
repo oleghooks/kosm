@@ -1,7 +1,12 @@
 <html>
 <head>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <meta charset="UTF-8">
+    @if($is_mobile)
+        @vite(['resources/css/app.css', 'resources/js/mobile_app.js'])
+    @endif
+    @if(!$is_mobile)
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
+     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
