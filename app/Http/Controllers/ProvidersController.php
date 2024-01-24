@@ -147,7 +147,7 @@ class ProvidersController extends Controller
         $color = imagecolorallocate($img, 255, 0, 0);
 
         // указываем путь к шрифту
-        $font = 'C:\OpenServer\domains\kosm\resources\fonts\arial_bolditalicmt.ttf';
+        $font = '..\resources\fonts\arial_bolditalicmt.ttf';
 
         $text = urldecode($text);
         imagefilledrectangle($img, 345, 129, 500, 170, imagecolorallocate($img, 0, 0, 0));

@@ -59,6 +59,10 @@ export default {
         watch(()=>bus.value.get('is_load_hidden'), (val) => {
             this.isLoad = false;
         })
+        watch(()=>bus.value.get('cart_delete'), (val) => {
+            let [item] = val ?? [];
+            this.cart_items.splice(this.cart_items.findIndex(items => items === item), 1);
+        })
     }
 }
 </script>

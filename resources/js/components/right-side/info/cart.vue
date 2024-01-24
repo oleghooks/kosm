@@ -1,4 +1,7 @@
 <script>
+import useEventsBus from "@/EventBus.js";
+const {emit}=useEventsBus();
+
 export default {
     props: [
         'infoItem',
@@ -33,6 +36,9 @@ export default {
                 if(item.provide_id === this.provide_id)
                     this.allSumm = this.allSumm + (item.price * item.count);
             });
+        },
+        cart_delete: function(item){
+            emit('cart_delete', item);
         }
     },
     mounted() {
@@ -47,6 +53,10 @@ export default {
             <div  class="info-item" v-for="(item, index) in cart_items.filter(items => items.provide_id === provide_id)">
 
                 <div>
+                    <div style="float: right;">
+                        <span style="" v-on:click="cart_delete(item)">X</span>
+
+                    </div>
                     <img v-on:click="changeCurrentInfoItem(infoItem.items.findIndex(item_full => item_full.id === item.item_id), item.attach_index)" :src="infoItem.items.find(item_full => item_full.id === item.item_id)?.attachments[item.attach_index]?.photo?.sizes[2]?.url">
                     <div class="price">
                         <button v-on:click="item.count--;">-</button>
