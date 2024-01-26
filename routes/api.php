@@ -16,19 +16,6 @@ use App\Http\Controllers\ProvidersController;
 |
 */
 
-Route::controller(ProvidersController::class)->group(function(){
-    Route::get('providers.list', 'getList');
-    Route::get('providers.info', 'getInfo');
-    Route::get('providers.group.info', 'getGroupInfo');
-    Route::get('providers.group.add', 'addGroup');
-    Route::get('providers.test', 'test');
-});
+//if(\Illuminate\Support\Facades\Auth::check()){
 
-Route::controller(\App\Http\Controllers\CartController::class)->group(function(){
-    Route::post('cart.update', 'update');
-    Route::get('cart.list', 'list');
-    Route::get('cart.make', 'make');
-
-});
-
-Route::get('/parser', [ParserController::class, 'parse']);
+//}

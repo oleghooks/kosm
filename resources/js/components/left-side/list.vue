@@ -35,7 +35,7 @@ export default {
             emit('info', id);
         },
         search: async function(){
-            let url = "/api/providers.group.info?type=vk&id="+this.search_text;
+            let url = "/providers.group.info?type=vk&id="+this.search_text;
             let response = await fetch(url);
             response = await response.json();
             this.search_result = response;
@@ -44,7 +44,7 @@ export default {
         add: async function(id){
             this.search_text = "";
             this.search_result = false;
-            let url = "/api/providers.group.add?type=vk&id="+id;
+            let url = "/providers.group.add?type=vk&id="+id;
             let response = await fetch(url);
             response = await response.json();
             this.getList(response.id);
@@ -52,7 +52,7 @@ export default {
         getList: async function(id){
             this.currentItem = id;
             emit('info', id);
-            let url = "/api/providers.list";
+            let url = "/providers.list";
             let response = await fetch(url);
             response = await response.json();
             this.providers = response.response;

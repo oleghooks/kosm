@@ -3,26 +3,30 @@ import List from "@/components/mobile/list.vue";
 import {watch} from "vue";
 import useEventsBus from "@/EventBus.js";
 import Info from "@/components/mobile/info.vue";
+import Cart from "@/components/mobile/info/cart.vue";
+import Post from "@/components/mobile/info/posts/post.vue";
+import FooterMain from "@/components/mobile/footer-main.vue";
 
+import {post} from "@/post.js";
 export default {
-    components: {Info, List},
+    components: {FooterMain, Post, Cart, Info, List},
     data(){
         return{
             currentPage: 1,
             isLoad: false,
-            cart_items: []
+            cart_items: [],
+            info: {
+                items: [],
+                provider: {},
+                order: 'popular',
+                select_item: 0,
+            }
         }
     },
     watch: {
         cart_items: {
             async handler(newCartItems){
-                let response = await fetch('/api/cart.update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json;charset=utf-8'
-                    },
-                    body: JSON.stringify({cart: newCartItems})
-                });
+                let response = await post('/cart.update', {cart: newCartItems});
             },
             deep: true
         }
@@ -38,8 +42,27 @@ export default {
             });
         },
         cart_list: async function(){
-           let response = await fetch('/api/cart.list');
+           let response = await fetch('/cart.list');
            this.cart_items = await response.json();
+        },
+        infoProvider: async function(id){
+            this.currentPage = 2;
+            this.isLoad = true;
+            this.info.items = [];
+            this.info.provider = {};
+            let url = '/providers.info?id='+id+'&order='+this.info.order;
+            let response = await fetch(url);
+            response = await response.json()
+            this.info.items = response.items;
+            this.info.provider = response.provider;
+            this.isLoad = false;
+        },
+        changeOrder: async function(type){
+            this.info.order = type;
+            await this.infoProvider(this.info.provider.id);
+        },
+        changePage: function (index){
+            this.currentPage = index;
         }
     },
     mounted() {
@@ -48,7 +71,12 @@ export default {
         watch(()=>bus.value.get('cart_add'), (val) => {
             // destruct the parameters
             let [item] = val ?? [];
-            this.cart_add(item.item_id, item.attach_index, item.count, item.price);
+            this.cart_add(item.item_id, item.attach_index, item.count, item.price, this.info.provider.id);
+        })
+        watch(()=>bus.value.get('cart_delete'), (val) => {
+            // destruct the parameters
+            let [item] = val ?? [];
+            this.cart_items.splice(item, 1);
         })
         watch(()=>bus.value.get('is_load_show'), (val) => {
             this.isLoad = true;
@@ -57,10 +85,17 @@ export default {
             this.isLoad = false;
         })
         watch(()=>bus.value.get('info'), (val) => {
-            this.currentPage = 2;
+            let [item] = val ?? [];
+            this.infoProvider(item);
         })
-        watch(()=>bus.value.get('page_home'), (val) => {
-            this.currentPage = 1;
+        watch(()=>bus.value.get('change_order'), (val) => {
+            let [item] = val ?? [];
+            this.changeOrder(item);
+        })
+        watch(()=>bus.value.get('select_item'), (val) => {
+            let [item] = val ?? [];
+            this.info.select_item = item;
+            this.currentPage = 4;
         })
     }
 }
@@ -68,22 +103,18 @@ export default {
 
 <template>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <div v-if="currentPage === 2" v-on:click="currentPage = 1" class="back"><</div>
+    <div v-if="currentPage > 1 && currentPage < 5" v-on:click="currentPage = currentPage - 1" class="back"><</div>
+    <div v-if="currentPage === 2" v-on:click="currentPage = 3" class="cart_icon">C</div>
     <div class="main">
         <div :class="{'active': (currentPage === 1 && !isLoad)}"><list :cart_items="cart_items"></list></div>
-        <div :class="{'active': (currentPage === 2 && !isLoad)}"><info  :cart_items="cart_items" :cart_add_main="cart_add" /></div>
-        <div>3</div>
+        <div :class="{'active': (currentPage === 2 && !isLoad)}"><info  :cart_items="cart_items" :info="info"/></div>
+        <div :class="{'active': (currentPage === 3 && !isLoad)}"><cart :cart_items="cart_items" :info="info" /></div>
+        <div :class="{'active': (currentPage === 4 && !isLoad)}"><post v-if="info.items.length > 0" :cart_items="cart_items" :item="info.items[info.select_item]" /></div>
         <div>4</div>
         <div>5</div>
         <div class="load" :class="{'active': isLoad}"></div>
     </div>
-    <div class="footer">
-        <div v-on:click="currentPage = 1">1</div>
-        <div v-on:click="currentPage = 2">2</div>
-        <div v-on:click="isLoad = true">3</div>
-        <div v-on:click="isLoad = false">4</div>
-        <div>5</div>
-    </div>
+    <footer-main :currentPage="currentPage" :changePage="changePage" ></footer-main>
 </template>
 
 <style>
@@ -93,7 +124,10 @@ export default {
     font-style: normal;
     font-weight: normal;
 }
-.back{
+.cart_icon{
+    right: 10px;
+}
+.back, .cart_icon{
     position: fixed;
     padding: 9px;
     margin: 10px;
@@ -118,10 +152,11 @@ body{
 }
 .main{
     display: block;
-    height: calc(100% - 51px);
+    height: 100%;
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
+    padding-bottom: 70px;
 }
 .main > div.active{
     display: block;
@@ -138,17 +173,7 @@ body{
     background-repeat: no-repeat;
     background-position: 50% 50%;
 }
-.footer{
-    border-top: 1px solid #2274bb;
-    background: #b4b4b4;
-    width: 100%;
-    height: 50px;
-    display: flex;
-}
-.footer > div{
 
-    margin: 0px 10px;
-}
 
 .button{
     padding: 5px 10px;

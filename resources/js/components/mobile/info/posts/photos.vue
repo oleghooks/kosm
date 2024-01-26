@@ -1,11 +1,17 @@
 <script>
+import useEventsBus from "@/EventBus.js";
+const {emit}=useEventsBus();
 export default {
-    props: ['item'],
+    props: ['item', 'cart_items'],
     data(){
         return{
             timer: null,
             indexPhoto: 0,
-            isCart: false
+            isCart: false,
+            input: {
+                price: "",
+                count: "",
+            }
         }
     },
     methods: {
@@ -19,9 +25,9 @@ export default {
                         this.isCart = false;
                     else{
                         if((item.attachments.length - 1) === this.indexPhoto)
-                            this.indexPhoto = 0;
+                            this.changePhoto(0);
                         else
-                            this.indexPhoto++;
+                            this.changePhoto(this.indexPhoto + 1);
                     }
                 }, 300);//tolerance in ms
             }else{
@@ -30,7 +36,28 @@ export default {
                 this.isCart = true;
                 // double click
             }
-        }
+        },
+        changePhoto: function (index){
+            this.indexPhoto = index;
+            this.input.price = "";
+            this.input.count = "";
+        },
+        cart_add: function (){
+            emit('cart_add', {
+                item_id: this.item.id,
+                attach_index: this.indexPhoto,
+                count: this.input.count,
+                price: this.input.price
+            });
+        },
+        cart_delete: function(){
+            emit('cart_delete',
+                this.cart_items.findIndex(this.is_cart)
+            );
+        },
+        is_cart: function(element){
+            return (element.item_id === this.item.id && element.attach_index === this.indexPhoto)
+        },
     }
 }
 </script>
@@ -38,23 +65,26 @@ export default {
 <template>
     <div :class="{'cart_active': isCart}">
         <div class="cart">
-            <div>
+            <div v-if="!cart_items.find(is_cart)">
                 <div>
-                    <input type="number"><label>шт.</label>
-                    <input type="number"><label>цена</label>
+                    <input type="number" v-model="input.count"><label>шт.</label>
+                    <input type="number" v-model="input.price"><label>цена</label>
                 </div>
                 <div>
-                    <button class="button button-blue">Добавить</button>
+                    <button class="button button-blue" v-on:click="cart_add">Добавить</button>
                     <button class="button button-grey" v-on:click="isCart = false;">Отменить</button>
                 </div>
             </div>
+            <div v-if="cart_items.find(is_cart)">
+                <p>Товар в корзине: {{cart_items.find(is_cart)?.count}} шт. по {{cart_items.find(is_cart)?.price}} руб</p>
+                <p><button class="button button-grey" v-on:click="cart_delete">Убрать из корзины</button></p>
+            </div>
         </div>
-        <img :src="item.attachments[indexPhoto]?.photo?.sizes[2]?.url" v-on:click="clickPhoto(item)">
+        <img style="max-width: 100%" :src="item.attachments[indexPhoto]?.photo?.sizes.at(-1)?.url" v-on:click="clickPhoto(item)">
     </div>
     <div style="display: flex" class="photos">
-        <div v-for="(attach, index) in item.attachments"  :class="{'photo-active': indexPhoto === index}">
-            <!--<span v-if="fast_cart_items[index]">{{fast_cart_items[index]}}</span>-->
-            <img :src="attach.photo?.sizes[0]?.url" v-on:click="indexPhoto = index">
+        <div v-for="(attach, index) in item.attachments"  :class="{'photo-active': indexPhoto === index}" :style="'background-image: url('+attach.photo?.sizes[0]?.url+')'" v-on:click="changePhoto(index)">
+            <span v-if="cart_items.find(item_full => (item_full.item_id === item.id && item_full.attach_index === index))">{{cart_items.find(item_full => (item_full.item_id === item.id && item_full.attach_index === index))?.count}}</span>
         </div>
     </div>
 </template>
@@ -106,8 +136,9 @@ export default {
     max-height: 80px;
 }
 .photos span{
-    position: absolute;
-    margin-left: 5px;
+
+    top: 5px;
+    position: relative;
     background: red;
     color: white;
     font-weight: bold;
@@ -118,6 +149,10 @@ export default {
     border: 3px solid #fff;
     border-radius: 3px;
     cursor: pointer;
+    width: 75px;
+    height: 75px;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
 }
 .photos > div.photo-active{
     border: 3px solid #bbb;

@@ -3,6 +3,7 @@ import list from "./left-side/list.vue";
 import info from "./right-side/info.vue";
 import {watch} from "vue";
 import useEventsBus from "@/EventBus.js";
+import {post} from "@/post.js";
 
 export default {
 
@@ -19,13 +20,7 @@ export default {
     watch: {
         cart_items: {
             async handler(newCartItems){
-                let response = await fetch('/api/cart.update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json;charset=utf-8'
-                    },
-                    body: JSON.stringify({cart: newCartItems})
-                });
+                let response = await post('/cart.update', {cart: newCartItems});
             },
             deep: true
         }
@@ -41,7 +36,7 @@ export default {
             });
         },
         cart_list: async function(){
-           let response = await fetch('/api/cart.list');
+           let response = await fetch('/cart.list');
            this.cart_items = await response.json();
         }
     },

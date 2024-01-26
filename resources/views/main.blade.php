@@ -1,5 +1,7 @@
 <html>
 <head>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
     @if($is_mobile)
         @vite(['resources/css/app.css', 'resources/js/mobile_app.js'])
     @endif

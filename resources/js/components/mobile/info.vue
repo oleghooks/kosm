@@ -3,23 +3,13 @@
 import useEventsBus from "@/EventBus.js";
 const {emit}=useEventsBus();
 
-import {watch} from "vue";
-import Full_info from "@/components/mobile/info/full_info.vue";
 import ProvideInfo from "@/components/mobile/info/provide-info.vue";
 import Posts from "@/components/mobile/info/posts.vue";
 import Cart from "@/components/mobile/info/cart.vue";
 export default {
-    props: ['cart_add_main', 'cart_items'],
+    props: ['cart_items', 'info'],
 
-    components: {Cart, Posts, ProvideInfo, Full_info},
-    watch: {
-        cart_items: {
-            handler(newCartItems){
-                this.calcCartItems();
-            },
-            deep: true
-        }
-    },
+    components: {Cart, Posts, ProvideInfo},
     data(){
         return {
             infoItem: {
@@ -28,108 +18,21 @@ export default {
             infoProvider: {
 
             },
-            currentInfoItem: false,
             currentOrder: 'popular',
             currentId: 0,
-            count_cart: 0,
-            type: 'posts'
         }
     },
-    methods: {
-        calcCartItems: function(){
-            this.count_cart = 0;
-            if(this.currentId > 0){
-                this.cart_items.forEach(item => {
-                    if(item.provide_id === this.currentId)
-                        this.count_cart++;
-                });
-            }
-        },
-        info: async function(id){
-            emit('is_load_show');
-            this.currentId = id;
-            this.calcCartItems();
-            this.type = 'posts';
-            this.infoItem.items = [];
-            this.infoProvider = {};
-            let url = '/api/providers.info?id='+id+'&order='+this.currentOrder;
-            let response = await fetch(url);
-            response = await response.json()
-            this.infoItem.items = response.items;
-            this.infoProvider = response.provider;
-            emit('is_load_hidden');
-        },
-        cart_add: function(item_id, attach_index, count, price){
-            this.cart_add_main(
-                item_id,
-                attach_index,
-                count,
-                price,
-                this.currentId
-            );
-        },
-        changeCurrentInfoItem: function(id){
-            this.currentInfoItem = id;
-        },
-        changeOrder: async function(type){
-            this.currentOrder = type;
-            await this.info(this.currentId);
-        }
-    },
-    mounted() {
-        const { bus } = useEventsBus()
-
-        watch(()=>bus.value.get('info'), (val) => {
-            // destruct the parameters
-            const [id] = val ?? 0
-            this.info(id);
-        })
-        watch(()=>bus.value.get('currentInfoItemFalse'), (val) => {
-            // destruct the parameters
-            this.currentInfoItem = false;
-        })
-    }
 }
 </script>
 
 <template>
-    <provide-info :infoProvider="infoProvider"/>
+    <provide-info :infoProvider="info.provider"/>
 
-    <posts :currentOrder="currentOrder" :infoItem="infoItem" :changeCurrentInfoItem="changeCurrentInfoItem" :changeOrder="changeOrder" />
+    <posts :cart_items="cart_items" :currentOrder="info.order" :items="info.items" />
     <!--<cart  :infoItem="infoItem" :cart_items="cart_items" :changeCurrentInfoItem="changeCurrentInfoItem" :provide_id="currentId" />
-    <full_info :currentInfoItem="currentInfoItem" :infoItem="infoItem?.items[currentInfoItem]" :cart_items="cart_items" :cart_add="cart_add" />-->
+    <full_info :currentInfoItem="currentInfoItem" :infoItem="infoItem?.items[currentInfoItem]" :cart_items="cart_items" />-->
 </template>
 
-<style>
-.provider-menu{
-    display: flex;
-    padding: 10px 0px;
-    background: #2274bb;
-    color: white;
-    margin-bottom: 10px;
-}
-.provider-menu > div{
-    background: #378ede;
-    margin: 0px 10px;
-    padding: 5px 20px;
-    border-radius: 3px;
-}
-.provider-menu > div:hover{
-    background: #4ca6f8;
-    cursor: pointer;
-}
-.provider-menu > div.active{
-    background: #fff;
-    color: #2274bb;
-}
-.provider-menu span{
-    position: relative;
-    background: red;
-    color: white;
-    padding: 2px 6px;
-    font-size: 13px;
-    border-radius: 100%;
-    font-weight: bold;
-}
+<style scoped>
 
 </style>

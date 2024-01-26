@@ -1,10 +1,11 @@
 <script>
+import useEventsBus from "@/EventBus.js";
+const {emit}=useEventsBus();
 export default {
     props: [
-        'infoItem',
         'changeCurrentInfoItem',
         'cart_items',
-        'provide_id'
+        'info'
     ],
     data(){
         return {
@@ -18,7 +19,7 @@ export default {
                 this.calc();
             }
         },
-        infoItem: {
+        info: {
             deep: true,
             handler(newCartItems, oldCartItems) {
                 this.calc();
@@ -30,9 +31,12 @@ export default {
 
             this.allSumm = 0;
             this.cart_items.forEach(item => {
-                if(item.provide_id === this.provide_id)
+                if(item.provide_id === this.info.provider.id)
                     this.allSumm = this.allSumm + (item.price * item.count);
             });
+        },
+        select_item: function(index){
+            emit('select_item', index);
         }
     },
     mounted() {
@@ -43,38 +47,34 @@ export default {
 
 <template>
     <div class="cart">
-        <div style="">
-            <div  class="info-item" v-for="(item, index) in cart_items.filter(items => items.provide_id === provide_id)">
+        <div  class="info-item" v-for="(item, index) in cart_items.filter(items => items.provide_id === info.provider.id)">
 
-                <div>
-                    <img v-on:click="changeCurrentInfoItem(infoItem.items.findIndex(item_full => item_full.id === item.item_id), item.attach_index)" :src="infoItem.items.find(item_full => item_full.id === item.item_id)?.attachments[item.attach_index]?.photo?.sizes[2]?.url">
-                    <div class="price">
-                        <button v-on:click="item.count--;">-</button>
-                        <input type="text" v-model="cart_items.filter(items => items.provide_id === provide_id)[index].count">
-                        <button v-on:click="item.count++;">+</button>
-                        по
-                        <input type="text" v-model="cart_items.filter(items => items.provide_id === provide_id)[index].price"> <b>руб.</b>
-                    </div>
+            <div>
+                <img v-on:click="select_item(info.items.findIndex(item_full => item_full.id === item.item_id))" :src="info.items.find(item_full => item_full.id === item.item_id)?.attachments[item.attach_index]?.photo?.sizes[2]?.url">
+                <div class="price">
+                    <button v-on:click="item.count--;">-</button>
+                    <input type="text" v-model="cart_items.filter(items => items.provide_id === info.provider.id)[index].count">
+                    <button v-on:click="item.count++;">+</button>
+                    по
+                    <input type="text" v-model="cart_items.filter(items => items.provide_id === info.provider.id)[index].price"> <b>руб.</b>
                 </div>
-
             </div>
+
         </div>
-        <div v-if="allSumm > 0" class="all_summ">
-            <p>Общая сумма: <b>{{allSumm}} руб</b></p>
-            <a :href="'/api/cart.make?id='+provide_id" target="_blank"><button class="button">Оформить заказ</button></a>
-        </div>
+    </div>
+    <div v-if="allSumm > 0" class="all_summ">
+        <p>Общая сумма: <b>{{allSumm}} руб</b></p>
+        <a :href="'/api/cart.make?id='+info.provider.id" target="_blank"><button class="button button-blue">Оформить заказ</button></a>
     </div>
 </template>
 
 <style scoped>
 .cart{
-    height: 100%;
-    min-width: 236px;
-    overflow-y: scroll;
-    overflow-x: hidden;
+    display: flex;
+    flex-wrap: wrap;
 }
 .price input[type=text]{
-    width: 27px;
+    width: 30px;
     text-align: center;
     border: 0px;
     padding: 3px;
@@ -83,7 +83,6 @@ export default {
     outline: none;
 }
 .info-item{
-    width: 180px;
     margin: 5px;
     border: 1px solid #bbb;
     text-align: center;

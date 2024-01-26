@@ -21,29 +21,33 @@ class ProvidersController extends Controller
             'id' => 'numeric|required',
             'order' => 'required'
         ]);
+        $limit = 15;
+        $offset = ($request->input('p') ?? 0) * $limit;
         $id = $request->input('id');
         $order_by = $request->input('order');
         $provide = Provide::find($id);
-        $items_response = [];
         if($provide->id > 0){
             $items = ProvidersItem::where('provide_id', $provide->id)
                 ->orderBy($order_by, 'DESC')
+                ->limit($limit)
+                ->offset($offset)
                 ->get();
             if(count($items) === 0 or (time() - $provide->last_parser) > 86400){
                 $this->updatePostsGroup($id);
                 $items = ProvidersItem::where('provide_id', $provide->id)
                     ->orderBy($order_by, 'DESC')
+                    ->limit($limit)
+                    ->offset($offset)
                     ->get();
             }
             foreach ($items as &$item) {
                 $item->attachments = json_decode($item->attachments);
                 $item->post_date = TimeConverter::Convert($item->post_date);
             }
-            $items_response = $items;
         }
         return [
             'provider' => $provide,
-            'items' => $items_response];
+            'items' => $items];
     }
 
     public function getGroupInfo(Request $request){

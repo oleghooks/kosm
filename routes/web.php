@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ParserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProvidersController;
 
@@ -13,10 +14,33 @@ use App\Http\Controllers\ProvidersController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
 Route::get('/', function () {
-    $is_mobile = preg_match('/(android|bb\\d+|meego).+mobile|avantgo|bada\\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge\\|maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i', $_SERVER['HTTP_USER_AGENT']);
-    return view('main', ['is_mobile' => $is_mobile]);
+    if(\Illuminate\Support\Facades\Auth::check()) {
+        $is_mobile = preg_match('/(android|bb\\d+|meego).+mobile|avantgo|bada\\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge\\|maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i', $_SERVER['HTTP_USER_AGENT']);
+        return view('main', ['is_mobile' => $is_mobile]);
+    }
+    else
+        return redirect('/auth');
 });
+Route::get('/auth', [\App\Http\Controllers\AuthController::class, 'vk'])->name('login');
 
-Route::get('/list', [ProvidersController::class, 'getList']);
+Route::middleware('auth')->group(function () {
+
+    Route::controller(ProvidersController::class)->group(function () {
+        Route::get('providers.list', 'getList');
+        Route::get('providers.info', 'getInfo');
+        Route::get('providers.group.info', 'getGroupInfo');
+        Route::get('providers.group.add', 'addGroup');
+        Route::get('providers.test', 'test');
+    });
+
+    Route::controller(\App\Http\Controllers\CartController::class)->group(function () {
+        Route::post('cart.update', 'update');
+        Route::get('cart.list', 'list');
+        Route::get('cart.make', 'make');
+
+    });
+
+
+    Route::get('/parser', [ParserController::class, 'parse']);
+});

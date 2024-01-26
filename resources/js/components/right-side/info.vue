@@ -52,7 +52,7 @@ export default {
             this.type = 'posts';
             this.infoItem.items = [];
             this.infoProvider = {};
-            let url = '/api/providers.info?id='+id+'&order='+this.currentOrder;
+            let url = '/providers.info?id='+id+'&order='+this.currentOrder;
             let response = await fetch(url);
             response = await response.json()
             this.infoItem.items = response.items;
