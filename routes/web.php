@@ -29,8 +29,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(ProvidersController::class)->group(function () {
         Route::get('providers.list', 'getList');
         Route::get('providers.info', 'getInfo');
+        Route::post('providers.favorite', 'favorite');
         Route::get('providers.group.info', 'getGroupInfo');
         Route::get('providers.group.add', 'addGroup');
+        Route::post('providers.group.add.list', 'addGroupsList');
+        Route::get('providers.group.vk_list', 'getGroupsUser');
         Route::get('providers.test', 'test');
     });
 
@@ -38,6 +41,10 @@ Route::middleware('auth')->group(function () {
         Route::post('cart.update', 'update');
         Route::get('cart.list', 'list');
         Route::get('cart.make', 'make');
+
+    });
+    Route::controller(\App\Http\Controllers\UserController::class)->group(function () {
+        Route::get('user.favorites', 'favorites_items');
 
     });
 

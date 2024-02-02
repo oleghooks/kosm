@@ -1,7 +1,10 @@
 <script>
 import useEventsBus from "@/EventBus.js";
+import Groups from "@/components/mobile/list/groups.vue";
+import {post} from "@/post.js";
 const {emit}=useEventsBus();
 export default {
+    components: {Groups},
     props: ['cart_items'],
     watch: {
         cart_items: {
@@ -23,39 +26,33 @@ export default {
             providers: [
             ],
             currentItem: false,
-            search_text: "",
-            search_result: false,
             providers_count_carts: {
 
-            }
+            },
+            page: 0,
         }
     },
     methods: {
         info: function(id){
             emit('info', id);
         },
-        search: async function(){
-            let url = "/providers.group.info?type=vk&id="+this.search_text;
-            let response = await fetch(url);
-            response = await response.json();
-            this.search_result = response;
-            console.log(response);
-        },
-        add: async function(id){
-            this.search_text = "";
-            this.search_result = false;
-            let url = "/providers.group.add?type=vk&id="+id;
-            let response = await fetch(url);
-            response = await response.json();
-            this.getList(response.id);
-        },
         getList: async function(id){
-            this.currentItem = id;
-            emit('info', id);
+            if(id) {
+                this.currentItem = id;
+                emit('info', id);
+            }
             let url = "/providers.list";
             let response = await fetch(url);
             response = await response.json();
             this.providers = response.response;
+        },
+        cancel: function(){
+            this.page = 0;
+            this.getList();
+        },
+        favorite: async function(id){
+            await post('providers.favorite', {id: id});
+            await this.getList();
         }
     },
     mounted() {
@@ -65,26 +62,40 @@ export default {
 </script>
 
 <template>
-    <div>
-        <input  class="search_text" type="text" v-model="search_text" placeholder="Введите короткое имя или ID группы"  @keyup.enter="search">
-    </div>
-    <div v-if="search_result" class="search_result">
-        <div class="list_item"  v-on:click="add(search_result?.response[0]?.id);">
-            <div class="icon">
-                <img :src="search_result?.response[0]?.photo_50"></div>
-            <div class="info">{{search_result?.response[0]?.name}}</div>
-        </div>
-    </div>
-    <div v-for="(item, index) in providers" class="list_item" :class="{'list_item_active': currentItem === item.id}" v-on:click="info(item.id); currentItem = item.id;">
-        <div class="icon">
+    <groups v-if="page === 1" :cancel="cancel"></groups>
+    <div v-if="page === 0">
+        <div style="text-align: right;"><button class="button button-blue" v-on:click="page = 1">Добавить поставщиков</button></div>
+        <div v-for="(item, index) in providers" class="list_item" :class="{'list_item_active': currentItem === item.id}">
+            <div class="favorite" :class="{'favorite_active': item.favorites > 0}" v-on:click="favorite(item.id)">
+            </div>
+            <div class="icon" v-on:click="info(item.id); currentItem = item.id;">
 
-            <span class="cart_count" v-if="providers_count_carts[item.id]">{{providers_count_carts[item.id]}}</span>
-            <img :src="item.icon"></div>
-        <div class="info">{{item.name}}</div>
+                <span class="cart_count" v-if="providers_count_carts[item.id]">{{providers_count_carts[item.id]}}</span>
+                <img :src="item.icon"></div>
+            <div class="info" v-on:click="info(item.id); currentItem = item.id;">{{item.name}}</div>
+        </div>
     </div>
 </template>
 
 <style>
+.favorite{
+    width: 32px;
+    height: 32px;
+    background-image: url("/img/icons/favorites.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    margin: 10px 10px 0px 0px;
+}
+.favorite_active{
+
+    background-image: url("/img/icons/favorites-active.png");
+}
+.page_1{
+    display: none;
+}
+.active{
+    display: block;
+}
 .cart_count{
     position: absolute;
     background: red;
@@ -93,18 +104,7 @@ export default {
     padding: 3px 7px;
     border-radius: 19px;
 }
-.search_text{
-    width: 100%;
-    border: 0px;
-    border-bottom: 1px solid #bbb;
-    padding: 13px;
-    outline: none;
-    font-size: 15px;
-}
-.search_result{
-    border-bottom: 1px solid #bbb;
-    padding-bottom: 20px;
-}
+
 .list_item{
     display: flex;
     padding: 10px;

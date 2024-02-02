@@ -9,6 +9,7 @@ export default {
         'currentOrder',
         'items',
         'cart_items',
+        'favorites',
     ],
     methods: {
         changeOrder: function(value){
@@ -24,7 +25,7 @@ export default {
             <div :class="{'order_active': currentOrder === 'post_date'}" v-on:click="changeOrder('post_date')">По дате</div>
             <div :class="{'order_active': currentOrder === 'popular'}" v-on:click="changeOrder('popular')">По популярности</div>
         </div>
-        <post v-for="(item, index) in items" :item="item" :cart_items="cart_items" />
+        <post v-for="(item, index) in items" :item="item" :cart_items="cart_items"  :favorites="favorites" />
     </div>
 </template>
 

@@ -15,6 +15,7 @@ export default {
             currentPage: 1,
             isLoad: false,
             cart_items: [],
+            favorites: [],
             info: {
                 items: [],
                 provider: {},
@@ -45,6 +46,10 @@ export default {
            let response = await fetch('/cart.list');
            this.cart_items = await response.json();
         },
+        favorites_list: async function(){
+            let response = await fetch('/user.favorites');
+            this.favorites = await response.json();
+        },
         infoProvider: async function(id){
             this.currentPage = 2;
             this.isLoad = true;
@@ -67,6 +72,7 @@ export default {
     },
     mounted() {
         this.cart_list();
+        this.favorites_list();
         const { bus } = useEventsBus();
         watch(()=>bus.value.get('cart_add'), (val) => {
             // destruct the parameters
@@ -107,9 +113,9 @@ export default {
     <div v-if="currentPage === 2" v-on:click="currentPage = 3" class="cart_icon">C</div>
     <div class="main">
         <div :class="{'active': (currentPage === 1 && !isLoad)}"><list :cart_items="cart_items"></list></div>
-        <div :class="{'active': (currentPage === 2 && !isLoad)}"><info  :cart_items="cart_items" :info="info"/></div>
+        <div :class="{'active': (currentPage === 2 && !isLoad)}"><info  :cart_items="cart_items" :favorites="favorites" :info="info"/></div>
         <div :class="{'active': (currentPage === 3 && !isLoad)}"><cart :cart_items="cart_items" :info="info" /></div>
-        <div :class="{'active': (currentPage === 4 && !isLoad)}"><post v-if="info.items.length > 0" :cart_items="cart_items" :item="info.items[info.select_item]" /></div>
+        <div :class="{'active': (currentPage === 4 && !isLoad)}"><post v-if="info.items.length > 0" :cart_items="cart_items" :favorites="favorites" :item="info.items[info.select_item]" /></div>
         <div>4</div>
         <div>5</div>
         <div class="load" :class="{'active': isLoad}"></div>

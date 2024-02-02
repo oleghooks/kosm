@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\ProvidersItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use ZipArchive;
 
 class CartController extends Controller
@@ -19,7 +20,7 @@ class CartController extends Controller
         $cart = Cart::where('user_id', '1')->first();
         if(!$cart)
             Cart::create([
-                'user_id' => '1',
+                'user_id' =>  Auth::id(),
                 'cart' => json_encode($cartJson)
             ]);
         else
@@ -31,15 +32,18 @@ class CartController extends Controller
 
     public function list(){
         //TODO user_id
-        $cart = Cart::where('user_id', '1')->first();
-        return $cart->cart;
+        $cart = Cart::where('user_id', Auth::id())->first();
+        if(isset($cart->cart))
+            return $cart->cart;
+        else
+            return [];
     }
 
     public function make(Request $request){
 
         //TODO user_id
         $provider_id = (int)$request->input('id');
-        $cart = Cart::where('user_id', 1)->first();
+        $cart = Cart::where('user_id',  Auth::id())->first();
         $zip = new ZipArchive();
         $filename = "../public/tmp/".md5(rand(0,99999999).rand(0,9999999)).".zip";
 

@@ -2,7 +2,7 @@
 import useEventsBus from "@/EventBus.js";
 const {emit}=useEventsBus();
 export default {
-    props: ['item', 'cart_items'],
+    props: ['item', 'cart_items', 'favorites'],
     data(){
         return{
             timer: null,
@@ -44,8 +44,6 @@ export default {
         },
         cart_add: function (){
             emit('cart_add', {
-                item_id: this.item.id,
-                attach_index: this.indexPhoto,
                 count: this.input.count,
                 price: this.input.price
             });
@@ -58,6 +56,22 @@ export default {
         is_cart: function(element){
             return (element.item_id === this.item.id && element.attach_index === this.indexPhoto)
         },
+        favorite_add: function(){
+            emit('favorite_add', {
+                item_id: this.item.id,
+                attach_index: this.indexPhoto
+            })
+        },
+        favorite_remove: function(){
+            emit('favorite_remove',
+                this.favorites.findIndex(this.is_cart)
+            );
+        }
+    },
+    mounted() {
+        if(this.item.attach_index){
+            this.indexPhoto = this.item.attach_index
+        }
     }
 }
 </script>
@@ -81,6 +95,7 @@ export default {
             </div>
         </div>
         <img style="max-width: 100%" :src="item.attachments[indexPhoto]?.photo?.sizes.at(-1)?.url" v-on:click="clickPhoto(item)">
+        <div :class="{'favorite_active': favorites.findIndex(is_cart)}" class="favorite"></div>
     </div>
     <div style="display: flex" class="photos">
         <div v-for="(attach, index) in item.attachments"  :class="{'photo-active': indexPhoto === index}" :style="'background-image: url('+attach.photo?.sizes[0]?.url+')'" v-on:click="changePhoto(index)">

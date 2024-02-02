@@ -6,14 +6,36 @@ use App\Http\Controllers\ParserController;
 use App\Http\Facades\TimeConverter;
 use App\Models\Provide;
 use App\Models\ProvidersItem;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProvidersController extends Controller
 {
     public function getList(){
-        $provides = Provide::all();
+        $provides = Provide::where('user_id', Auth::id())
+            ->orderBy('favorites', 'DESC')
+            ->orderBy('id', 'DESC')
+            ->get();
 
         return ['response' => $provides];
+    }
+
+    public function favorite(Request $request){
+        $request->validate([
+            'id' => 'required'
+        ]);
+        $id = $request->input('id');
+
+        $provide = Provide::where('id', $id)->where('user_id', Auth::id())->first();
+        if($provide){
+            if($provide->favorites > 0)
+                $provide->favorites = 0;
+            else
+                $provide->favorites = time();
+
+            $provide->save();
+        }
     }
 
     public function getInfo(Request $request){
@@ -25,21 +47,17 @@ class ProvidersController extends Controller
         $offset = ($request->input('p') ?? 0) * $limit;
         $id = $request->input('id');
         $order_by = $request->input('order');
-        $provide = Provide::find($id);
+        $provide = Provide::where('user_id', Auth::id())->where('id', $id)->first();
+        $items = [];
         if($provide->id > 0){
+            if((time() - $provide->last_parser) > 86400)
+                $this->updatePostsGroup($id);
             $items = ProvidersItem::where('provide_id', $provide->id)
                 ->orderBy($order_by, 'DESC')
                 ->limit($limit)
                 ->offset($offset)
                 ->get();
-            if(count($items) === 0 or (time() - $provide->last_parser) > 86400){
-                $this->updatePostsGroup($id);
-                $items = ProvidersItem::where('provide_id', $provide->id)
-                    ->orderBy($order_by, 'DESC')
-                    ->limit($limit)
-                    ->offset($offset)
-                    ->get();
-            }
+
             foreach ($items as &$item) {
                 $item->attachments = json_decode($item->attachments);
                 $item->post_date = TimeConverter::Convert($item->post_date);
@@ -80,6 +98,7 @@ class ProvidersController extends Controller
             $provide->min_summ = 0;
             $provide->last_parser = time();
             $provide->is_group = 1;
+            $provide->user_id = Auth::id();
             $provide->save();
             $this->updatePostsGroup($provide->id);
         }
@@ -89,7 +108,7 @@ class ProvidersController extends Controller
     }
 
     public function test(Request $request){
-        $this->getTextImage("https://sun9-44.userapi.com/impg/rCUKlqxv9qrtVNX7ckKss8zFh0cilA-PPEcWnQ/A0Yo6SZtnCk.jpg?size=510x643&quality=95&sign=26ca6650987bda4aceff502495f58352&c_uniq_tag=1FY7r3Oird6rZYqLztBzPUMtCGuNUgyeHqTh0ylQorU&type=album", "1 шт.");
+        return $this->getGroupsUser();
     }
     public function updatePostsGroup($id){
 
@@ -143,6 +162,26 @@ class ProvidersController extends Controller
         }
     }
 
+    public function getGroupsUser(){
+        //$user = User::find(Auth::id());
+        $providers = Provide::where('user_id', Auth::id())->get();
+        $groups = ParserController::vk('groups.get', [
+            'extended' => 1
+        ]);
+
+        $items = json_decode($groups);
+        $items = $items->response->items;
+        foreach ($providers as $provider) {
+            foreach($items as $key => $item){
+                if($item->id === $provider->type_id)
+                    unset($items[$key]);
+            }
+        }
+
+        return json_encode($items);
+
+    }
+
     public static function getTextImage($filename, $text){
         // наше изображение
         $img = ImageCreateFromJPEG($filename);
@@ -165,4 +204,33 @@ class ProvidersController extends Controller
         return $name;
 
     }
+
+    public function addGroupsList(Request $request){
+        $request->validate([
+           'groups' => 'required'
+        ]);
+        $groups_user = json_decode($this->getGroupsUser());
+        $groups_add = $request->input('groups');
+
+        foreach($groups_add as $group){
+            foreach($groups_user as $group_user){
+                if($group_user->id === $group){
+                    if(!Provide::where('type_id', $group)->first()){
+                        $provide = new Provide;
+                        $provide->name = $group_user->name;
+                        $provide->type = 'vk';
+                        $provide->type_id = $group_user->id;
+                        $provide->icon = $group_user->photo_50;
+                        $provide->min_summ = 0;
+                        $provide->last_parser = 0;
+                        $provide->is_group = 1;
+                        $provide->user_id = Auth::id();
+                        $provide->save();
+                    }
+                }
+            }
+        }
+    }
+
+
 }

@@ -3,13 +3,13 @@ import Photos from "@/components/mobile/info/posts/photos.vue";
 
 export default {
     components: {Photos},
-    props: ['item', 'cart_items']
+    props: ['item', 'cart_items', 'favorites']
 }
 </script>
 
 <template>
     <div class="info-item">
-        <photos :item="item" :cart_items="cart_items" />
+        <photos :item="item" :cart_items="cart_items"  :favorites="favorites" />
         <div class="desc" v-html="item.text.replace(/([^>])\n/g, '$1<br/>')"></div>
         {{item.post_date}}
         <div style="display: flex" class="info-item-stats">

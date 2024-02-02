@@ -23,7 +23,7 @@ class AuthController extends Controller
             curl_setopt($ch, CURLOPT_HEADER, false);
             $response = json_decode(curl_exec($ch));
             curl_close($ch);
-            var_dump($response);
+            //var_dump($response);
             if(isset($response->access_token)){
                 //TODO сделать авторизацию
                 $check_user = User::where('vk_id', $response->user_id)->first();
@@ -47,7 +47,7 @@ class AuthController extends Controller
 
         }
         else
-            echo "<a href='https://oauth.vk.com/authorize?client_id=51838883&scope=offline&redirect_uri=".urlencode('https://kosm.ru/auth')."'>ВК авторизация</a>";
+            echo "<a href='https://oauth.vk.com/authorize?client_id=51838883&scope=offline&redirect_uri=".env('VK_REDIRECT_URI')."'>ВК авторизация</a>";
         //TODO доделать кнопку вк
     }
 }
