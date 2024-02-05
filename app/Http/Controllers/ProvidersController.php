@@ -121,25 +121,32 @@ class ProvidersController extends Controller
     }
 
     public function test(Request $request){
-        var_dump(base_path());
+        $this->updatePostsGroupTest(9);
     }
     public function updatePostsGroup($id){
 
         $provide = Provide::find($id);
-
+        $count_items = ProvidersItem::where('provide_id', $provide->id)->count();
         $parse_id = $provide->type_id;
         if($provide->is_group === 1)
             $parse_id = "-".$parse_id;
         $provide->last_parser = time();
         $provide->save();
         if($provide->type === "vk"){
-            for($i = 0; $i < 11; $i++) {
+            if($count_items > 200)
+                $max_count = 1;
+            else
+                $max_count = 11;
+            $items = [];
+            for($i = 0; $i < $max_count; $i++) {
                 $response = ParserController::vk('wall.get', [
                     'owner_id' => $parse_id,
                     'count' => 100,
                     'offset' => 100 * $i
                 ]);
                 $response = json_decode($response);
+                if(ceil($response->response->count / 100 - 1) === $i)
+                    exit();
                 foreach ($response->response->items as &$item) {
                     if ($item->text === "" && isset($item->copy_history)) {
                         $item->text = $item->copy_history[0]->text;
@@ -152,7 +159,8 @@ class ProvidersController extends Controller
                         $item->comments->count = 1;
                     if ($item->likes->count === 0)
                         $item->likes->count = 1;
-                    $popular = ceil($item->likes->count * $item->comments->count * $item->reposts->count * $item->views->count * $item->date / 1000000000);
+
+                    $popular = ceil(($item->likes->count * 100) + ($item->comments->count * 150) + ($item->reposts->count * 170) + $item->views->count);
                     //echo $popular."<br />";
                     //TODO:: Доделать здесь
                     $item_info = ProvidersItem::where('provide_id', $id)->where('post_id', $item->id)->first();
@@ -172,8 +180,81 @@ class ProvidersController extends Controller
                         ]);
 
                     }
+                    else{
+                        ProvidersItem::where('provide_id', $id)->where('post_id', $item->id)->update([
+                            'attachments' => json_encode($item->attachments),
+                            'views' => $item->views->count,
+                            'comments' => $item->comments->count,
+                            'likes' => $item->likes->count,
+                            'reposts' => $item->reposts->count,
+                            'popular' => $popular,
+                        ]);
+                    }
                 }
             }
+
+        }
+    }
+
+    public function updatePostsGroupTest($id){
+
+        $provide = Provide::find($id);
+        $count_items = ProvidersItem::where('provide_id', $provide->id)->count();
+        $parse_id = $provide->type_id;
+        if($provide->is_group === 1)
+            $parse_id = "-".$parse_id;
+        $provide->last_parser = time();
+        $provide->save();
+        if($provide->type === "vk"){
+            if($count_items > 200)
+                $max_count = 1;
+            else
+                $max_count = 11;
+            $items = [];
+            for($i = 0; $i < $max_count; $i++) {
+                $response = ParserController::vk('wall.get', [
+                    'owner_id' => $parse_id,
+                    'count' => 100,
+                    'offset' => 100 * $i
+                ]);
+                $response = json_decode($response);
+                if(ceil($response->response->count / 100 - 1) === $i)
+                    exit();
+                foreach ($response->response->items as &$item) {
+                    if ($item->text === "" && isset($item->copy_history)) {
+                        $item->text = $item->copy_history[0]->text;
+                        if (isset($item->copy_history[0]->attachments))
+                            $item->attachments = $item->copy_history[0]->attachments;
+                    }
+
+                    $popular = ceil(($item->likes->count * 100) + ($item->comments->count * 150) + ($item->reposts->count * 170) + $item->views->count);
+                    $items[] = [
+                        'provide_id' => $id,
+                        'text' => $item->text,
+                        'price' => 0,
+                        'attachments' => json_encode($item->attachments),
+                        'views' => $item->views->count,
+                        'comments' => $item->comments->count,
+                        'likes' => $item->likes->count,
+                        'reposts' => $item->reposts->count,
+                        'popular' => $popular,
+                        'post_id' => $item->id,
+                        'post_date' => $item->date,
+                    ];
+                }
+            }
+            var_dump($items[0]);
+            if(count($items) > 0)
+                ProvidersItem::upsert($items,
+                    ['post_id', 'provide_id'],
+                    [
+                        'attachments',
+                        'views',
+                        'comments',
+                        'likes',
+                        'reposts',
+                        'popular',
+                    ]);
 
         }
     }
