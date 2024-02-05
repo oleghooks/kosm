@@ -47,11 +47,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(\App\Http\Controllers\UserController::class)->group(function () {
         Route::get('user.favorites', 'favorites_items');
         Route::post('user.favorites.update', 'favorites_items_update');
-
     });
     Route::controller(\App\Http\Controllers\OrdersController::class)->group(function () {
         Route::get('orders.list', 'list');
         Route::get('orders.info', 'info');
+        Route::get('orders.make.photos', 'make_photos');
 
     });
 

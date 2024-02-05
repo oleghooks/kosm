@@ -8,6 +8,7 @@ use App\Models\Provide;
 use App\Models\ProvidersItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use ZipArchive;
 
 class OrdersController extends Controller
 {
@@ -64,6 +65,7 @@ class OrdersController extends Controller
             $count = $count + $item->count;
             $summ = $summ + ($item->count * $item->price);
             $item_info = ProvidersItem::find($item->item_id);
+            $item_info->attachments = json_decode($item_info->attachments);
             $item->info = $item_info;
         }
         $info->summ = $summ;
@@ -71,5 +73,44 @@ class OrdersController extends Controller
         $info->time = TimeConverter::Convert($info->created_at);
         $info->items = $items;
         return $info;
+    }
+
+    public function make_photos(Request $request){
+        $order_id = (int)$request->input('id');
+        $order = Order::where('user_id',  Auth::id())->where('id', $order_id)->first();
+        if(!$order)
+            exit;
+
+
+        $zip = new ZipArchive();
+        $filename = base_path()."/public/tmp/".md5(rand(0,99999999).rand(0,9999999)).".zip";
+
+        if ($zip->open($filename, ZipArchive::CREATE)!==TRUE) {
+            exit("Невозможно открыть <$filename>\n");
+        }
+        $cart_items = json_decode($order->items);
+        foreach($cart_items as $key => $item){
+            $item_info = ProvidersItem::find($item->item_id);
+            $attachments = json_decode($item_info->attachments);
+            if($attachments[$item->attach_index]->photo){
+                $photo = end($attachments[$item->attach_index]->photo->sizes);
+                $name = ProvidersController::getTextImage($photo->url, $item->count.' шт.');
+
+                $zip->addFile($name, $key.".jpg");
+            }
+        }
+        $zip->close();
+        if (ob_get_contents()) ob_end_clean();
+
+        $file = $filename;
+
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename=' . basename($file));
+        header('Content-Transfer-Encoding: binary');
+        header('Content-Length: ' . filesize($file));
+
+        readfile($file);
+        exit();
     }
 }
