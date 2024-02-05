@@ -22,6 +22,11 @@ export default {
             currentId: 0,
         }
     },
+    methods:{
+        info_exe: function (){
+            emit('info', this.info.provider.id);
+        }
+    }
 }
 </script>
 
@@ -29,10 +34,18 @@ export default {
     <provide-info :infoProvider="info.provider"/>
 
     <posts :cart_items="cart_items"  :favorites="favorites" :currentOrder="info.order" :items="info.items" />
+
+    <div class="posts_exe" v-on:click="info_exe">Еще записи</div>
     <!--<cart  :infoItem="infoItem" :cart_items="cart_items" :changeCurrentInfoItem="changeCurrentInfoItem" :provide_id="currentId" />
     <full_info :currentInfoItem="currentInfoItem" :infoItem="infoItem?.items[currentInfoItem]" :cart_items="cart_items" />-->
 </template>
 
 <style scoped>
-
+.posts_exe{
+    padding: 10px;
+    text-align: center;
+    background: #bbb;
+    border-radius: 10px;
+    margin: 10px;
+}
 </style>

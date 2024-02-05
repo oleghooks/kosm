@@ -52,7 +52,15 @@ class ProvidersController extends Controller
         if($provide->id > 0){
             if((time() - $provide->last_parser) > 86400)
                 $this->updatePostsGroup($id);
+            if($order_by == 'popular')
             $items = ProvidersItem::where('provide_id', $provide->id)
+                ->where('post_date', '>', (time() - 864000))
+                ->orderBy($order_by, 'DESC')
+                ->limit($limit)
+                ->offset($offset)
+                ->get();
+            else
+                $items = ProvidersItem::where('provide_id', $provide->id)
                 ->orderBy($order_by, 'DESC')
                 ->limit($limit)
                 ->offset($offset)
@@ -60,6 +68,11 @@ class ProvidersController extends Controller
 
             foreach ($items as &$item) {
                 $item->attachments = json_decode($item->attachments);
+                $attachs = [];
+                foreach($item->attachments as $attach)
+                    if($attach->type === 'photo')
+                        $attachs[] = $attach;
+                $item->attachments = $attachs;
                 $item->post_date = TimeConverter::Convert($item->post_date);
             }
         }
@@ -108,7 +121,7 @@ class ProvidersController extends Controller
     }
 
     public function test(Request $request){
-        return $this->getGroupsUser();
+        var_dump(base_path());
     }
     public function updatePostsGroup($id){
 
@@ -120,42 +133,45 @@ class ProvidersController extends Controller
         $provide->last_parser = time();
         $provide->save();
         if($provide->type === "vk"){
-            $response = ParserController::vk('wall.get', [
-                'owner_id' => $parse_id,
-                'count' => 100,
-            ]);
-            $response = json_decode($response);
-            foreach($response->response->items as &$item){
-                if($item->text === "" && isset($item->copy_history)){
-                    $item->text = $item->copy_history[0]->text;
-                    if(isset($item->copy_history[0]->attachments))
-                        $item->attachments = $item->copy_history[0]->attachments;
-                }
-                if($item->reposts->count === 0)
-                    $item->reposts->count = 1;
-                if($item->comments->count === 0)
-                    $item->comments->count = 1;
-                if($item->likes->count === 0)
-                    $item->likes->count = 1;
-                $popular = ceil($item->likes->count * $item->comments->count * $item->reposts->count * $item->views->count * $item->date / 1000000000);
-                //echo $popular."<br />";
-                //TODO:: Доделать здесь
-                $item_info = ProvidersItem::where('provide_id', $id)->where('post_id', $item->id)->first();
-                if(!isset($item_info->id)){
-                    ProvidersItem::create([
-                        'provide_id' => $id,
-                        'text' => $item->text,
-                        'price' => 0,
-                        'attachments' => json_encode($item->attachments),
-                        'views' => $item->views->count,
-                        'comments' => $item->comments->count,
-                        'likes' => $item->likes->count,
-                        'reposts' => $item->reposts->count,
-                        'popular' => $popular,
-                        'post_id' => $item->id,
-                        'post_date' => $item->date,
-                    ]);
+            for($i = 0; $i < 11; $i++) {
+                $response = ParserController::vk('wall.get', [
+                    'owner_id' => $parse_id,
+                    'count' => 100,
+                    'offset' => 100 * $i
+                ]);
+                $response = json_decode($response);
+                foreach ($response->response->items as &$item) {
+                    if ($item->text === "" && isset($item->copy_history)) {
+                        $item->text = $item->copy_history[0]->text;
+                        if (isset($item->copy_history[0]->attachments))
+                            $item->attachments = $item->copy_history[0]->attachments;
+                    }
+                    if ($item->reposts->count === 0)
+                        $item->reposts->count = 1;
+                    if ($item->comments->count === 0)
+                        $item->comments->count = 1;
+                    if ($item->likes->count === 0)
+                        $item->likes->count = 1;
+                    $popular = ceil($item->likes->count * $item->comments->count * $item->reposts->count * $item->views->count * $item->date / 1000000000);
+                    //echo $popular."<br />";
+                    //TODO:: Доделать здесь
+                    $item_info = ProvidersItem::where('provide_id', $id)->where('post_id', $item->id)->first();
+                    if (!isset($item_info->id)) {
+                        ProvidersItem::create([
+                            'provide_id' => $id,
+                            'text' => $item->text,
+                            'price' => 0,
+                            'attachments' => json_encode($item->attachments),
+                            'views' => $item->views->count,
+                            'comments' => $item->comments->count,
+                            'likes' => $item->likes->count,
+                            'reposts' => $item->reposts->count,
+                            'popular' => $popular,
+                            'post_id' => $item->id,
+                            'post_date' => $item->date,
+                        ]);
 
+                    }
                 }
             }
 
@@ -185,12 +201,11 @@ class ProvidersController extends Controller
     public static function getTextImage($filename, $text){
         // наше изображение
         $img = ImageCreateFromJPEG($filename);
-        var_dump(__DIR__);
         // определяем цвет, в RGB
         $color = imagecolorallocate($img, 255, 0, 0);
 
         // указываем путь к шрифту
-        $font = '..\resources\fonts\arial_bolditalicmt.ttf';
+        $font = base_path().'/resources/fonts/arial_bolditalicmt.ttf';
 
         $text = urldecode($text);
         imagefilledrectangle($img, 345, 129, 500, 170, imagecolorallocate($img, 0, 0, 0));
@@ -199,7 +214,7 @@ class ProvidersController extends Controller
         // 0 - угол поворота
         // 365 - смещение по горизонтали
         // 159 - смещение по вертикали
-        $name = '../public/tmp/'.md5(rand(0, 999999).rand(0, 999999).rand(0, 999999)).'.jpg';
+        $name = base_path().'/public/tmp/'.md5(rand(0, 999999).rand(0, 999999).rand(0, 999999)).'.jpg';
         imagejpeg($img, $name, 100);
         return $name;
 

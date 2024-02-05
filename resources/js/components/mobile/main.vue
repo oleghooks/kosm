@@ -8,8 +8,10 @@ import Post from "@/components/mobile/info/posts/post.vue";
 import FooterMain from "@/components/mobile/footer-main.vue";
 
 import {post} from "@/post.js";
+import Posts from "@/components/right-side/info/posts.vue";
+import Orders from "@/components/mobile/orders.vue";
 export default {
-    components: {FooterMain, Post, Cart, Info, List},
+    components: {Orders, Posts, FooterMain, Post, Cart, Info, List},
     data(){
         return{
             currentPage: 1,
@@ -21,18 +23,37 @@ export default {
                 provider: {},
                 order: 'popular',
                 select_item: 0,
+                page: 0,
+                id: 0,
+                allSumm: 0,
             }
         }
     },
     watch: {
         cart_items: {
             async handler(newCartItems){
-                let response = await post('/cart.update', {cart: newCartItems});
+                await post('/cart.update', {cart: newCartItems});
+                this.calc();
             },
             deep: true
-        }
+        },
+        favorites:{
+            async handler(newFavorites){
+                await post('/user.favorites.update', {items: newFavorites});
+            },
+            deep: true
+        },
     },
     methods: {
+        calc: function(){
+            if(this.info.provider.id > 0) {
+                this.info.allSumm = 0;
+                this.cart_items.forEach(item => {
+                    if (item.provide_id === this.info.provider.id)
+                        this.info.allSumm = this.info.allSumm + (item.price * item.count);
+                });
+            }
+        },
         cart_add: function(item_id, attach_index, count, price, provide_id){
             this.cart_items.push({
                 item_id: item_id,
@@ -50,24 +71,40 @@ export default {
             let response = await fetch('/user.favorites');
             this.favorites = await response.json();
         },
-        infoProvider: async function(id){
+        infoProvider: async function(id, changeOrder = false){
             this.currentPage = 2;
-            this.isLoad = true;
-            this.info.items = [];
-            this.info.provider = {};
-            let url = '/providers.info?id='+id+'&order='+this.info.order;
+            if(this.info.id === id && changeOrder === false) {
+                this.info.page++;
+            }
+            else{
+                this.isLoad = true;
+                this.info.items = [];
+                this.info.provider = {};
+            }
+            this.info.id = id;
+            let url = '/providers.info?id='+id+'&order='+this.info.order+'&p='+this.info.page;
             let response = await fetch(url);
-            response = await response.json()
-            this.info.items = response.items;
+            response = await response.json();
+            response.items.forEach((item) => {
+                this.info.items.push(item);
+            });
             this.info.provider = response.provider;
             this.isLoad = false;
+            this.calc();
         },
         changeOrder: async function(type){
             this.info.order = type;
-            await this.infoProvider(this.info.provider.id);
+            await this.infoProvider(this.info.provider.id, true);
         },
         changePage: function (index){
             this.currentPage = index;
+        },
+        make_cart: async function(id){
+            this.isLoad = true;
+            let response = await post('/cart.make', {id: id})
+            this.cart_list();
+            this.currentPage = 6;
+            this.isLoad = false;
         }
     },
     mounted() {
@@ -82,7 +119,17 @@ export default {
         watch(()=>bus.value.get('cart_delete'), (val) => {
             // destruct the parameters
             let [item] = val ?? [];
-            this.cart_items.splice(item, 1);
+            this.cart_items.splice(this.cart_items.findIndex(items => items === item), 1);
+        })
+        watch(()=>bus.value.get('favorite_add'), (val) => {
+            // destruct the parameters
+            let [item] = val ?? [];
+            this.favorites.push(item);
+        })
+        watch(()=>bus.value.get('favorite_remove'), (val) => {
+            // destruct the parameters
+            let [item] = val ?? [];
+            this.favorites.splice(item, 1);
         })
         watch(()=>bus.value.get('is_load_show'), (val) => {
             this.isLoad = true;
@@ -103,6 +150,10 @@ export default {
             this.info.select_item = item;
             this.currentPage = 4;
         })
+        watch(()=>bus.value.get('make_cart'), (val) => {
+            let [item] = val ?? [];
+            this.make_cart(item);
+        })
     }
 }
 </script>
@@ -110,13 +161,14 @@ export default {
 <template>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <div v-if="currentPage > 1 && currentPage < 5" v-on:click="currentPage = currentPage - 1" class="back"><</div>
-    <div v-if="currentPage === 2" v-on:click="currentPage = 3" class="cart_icon">C</div>
+    <div v-if="currentPage === 2" v-on:click="currentPage = 3" class="cart_icon"><b>{{this.info.allSumm}} руб</b></div>
     <div class="main">
         <div :class="{'active': (currentPage === 1 && !isLoad)}"><list :cart_items="cart_items"></list></div>
         <div :class="{'active': (currentPage === 2 && !isLoad)}"><info  :cart_items="cart_items" :favorites="favorites" :info="info"/></div>
-        <div :class="{'active': (currentPage === 3 && !isLoad)}"><cart :cart_items="cart_items" :info="info" /></div>
+        <div :class="{'active': (currentPage === 3 && !isLoad)}"><cart v-if="currentPage === 3" :cart_items="cart_items" :info="info" /></div>
         <div :class="{'active': (currentPage === 4 && !isLoad)}"><post v-if="info.items.length > 0" :cart_items="cart_items" :favorites="favorites" :item="info.items[info.select_item]" /></div>
-        <div>4</div>
+        <div :class="{'active': (currentPage === 5 && !isLoad)}"><post v-for="(item, index) in favorites" :item="item" :cart_items="cart_items"  :favorites="favorites" /></div>
+        <div :class="{'active': (currentPage === 6 && !isLoad)}"><orders v-if="currentPage === 6" /></div>
         <div>5</div>
         <div class="load" :class="{'active': isLoad}"></div>
     </div>
@@ -129,9 +181,6 @@ export default {
     src: url("/fonts/YandexSansText-Regular.ttf") format("truetype");
     font-style: normal;
     font-weight: normal;
-}
-.cart_icon{
-    right: 10px;
 }
 .back, .cart_icon{
     position: fixed;
@@ -150,6 +199,13 @@ export default {
     opacity: 0.9;
 
 }
+.cart_icon{
+    right: 10px;
+    width: auto;
+}
+.cart_icon b{
+    font-size: 13px;
+}
 body{
     padding: 0px;
     margin: 0px;
@@ -160,15 +216,19 @@ body{
     display: block;
     height: 100%;
     width: 100%;
-    overflow-y: auto;
+    overflow-y: hidden;
     overflow-x: hidden;
-    padding-bottom: 70px;
 }
 .main > div.active{
     display: block;
 }
 .main > div{
     display: none;
+    height: calc(100% - 57px);
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
 }
 .load{
     width: -webkit-fill-available;

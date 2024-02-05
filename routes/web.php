@@ -40,11 +40,18 @@ Route::middleware('auth')->group(function () {
     Route::controller(\App\Http\Controllers\CartController::class)->group(function () {
         Route::post('cart.update', 'update');
         Route::get('cart.list', 'list');
-        Route::get('cart.make', 'make');
+        Route::post('cart.make', 'make');
+        Route::get('cart.items.info', 'items_info');
 
     });
     Route::controller(\App\Http\Controllers\UserController::class)->group(function () {
         Route::get('user.favorites', 'favorites_items');
+        Route::post('user.favorites.update', 'favorites_items_update');
+
+    });
+    Route::controller(\App\Http\Controllers\OrdersController::class)->group(function () {
+        Route::get('orders.list', 'list');
+        Route::get('orders.info', 'info');
 
     });
 

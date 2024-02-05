@@ -44,6 +44,8 @@ export default {
         },
         cart_add: function (){
             emit('cart_add', {
+                item_id: this.item.id,
+                attach_index: this.indexPhoto,
                 count: this.input.count,
                 price: this.input.price
             });
@@ -56,16 +58,24 @@ export default {
         is_cart: function(element){
             return (element.item_id === this.item.id && element.attach_index === this.indexPhoto)
         },
+        is_favorite: function(element){
+            return (element.id === this.item.id && element.attach_index === this.indexPhoto)
+        },
         favorite_add: function(){
-            emit('favorite_add', {
-                item_id: this.item.id,
-                attach_index: this.indexPhoto
-            })
+            let favorite = this.item;
+            favorite.attach_index = this.indexPhoto;
+            emit('favorite_add', favorite);
         },
         favorite_remove: function(){
             emit('favorite_remove',
-                this.favorites.findIndex(this.is_cart)
+                this.favorites.findIndex(this.is_favorite)
             );
+        },
+        favorite: function (){
+            if(this.favorites.find(this.is_favorite))
+                this.favorite_remove();
+            else
+                this.favorite_add();
         }
     },
     mounted() {
@@ -94,11 +104,11 @@ export default {
                 <p><button class="button button-grey" v-on:click="cart_delete">Убрать из корзины</button></p>
             </div>
         </div>
-        <img style="max-width: 100%" :src="item.attachments[indexPhoto]?.photo?.sizes.at(-1)?.url" v-on:click="clickPhoto(item)">
-        <div :class="{'favorite_active': favorites.findIndex(is_cart)}" class="favorite"></div>
+        <img v-if="item.attachments[indexPhoto]?.photo" style="max-width: 100%; width: 100%;" :src="item.attachments[indexPhoto]?.photo?.sizes.at(-1)?.url" v-on:click="clickPhoto(item)">
+        <div v-if="item.attachments[indexPhoto]?.photo" :class="{'favorite_active': favorites.find(is_favorite)}" v-on:click="favorite" style="float: right;" class="favorite"></div>
     </div>
     <div style="display: flex" class="photos">
-        <div v-for="(attach, index) in item.attachments"  :class="{'photo-active': indexPhoto === index}" :style="'background-image: url('+attach.photo?.sizes[0]?.url+')'" v-on:click="changePhoto(index)">
+        <div v-for="(attach, index) in item.attachments" :class="{'photo-active': indexPhoto === index}" :style="'background-image: url('+attach.photo?.sizes[0]?.url+')'" v-on:click="changePhoto(index)">
             <span v-if="cart_items.find(item_full => (item_full.item_id === item.id && item_full.attach_index === index))">{{cart_items.find(item_full => (item_full.item_id === item.id && item_full.attach_index === index))?.count}}</span>
         </div>
     </div>

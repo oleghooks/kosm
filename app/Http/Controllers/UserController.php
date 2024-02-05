@@ -11,18 +11,7 @@ class UserController extends Controller
 {
     public function favorites_items(){
         $user = User::find(Auth::id());
-        $items = [];
-        $favorites_items = json_decode($user->favorites_items);
-        foreach($favorites_items as $item){
-            $item_id = $item->item_id;
-            $attach_index = $item->attach_index;
-            $item_info = ProvidersItem::find($item_id);
-            if($item_info){
-                $item_info->attach_index = $attach_index;
-                $items[] = $item_info;
-            }
-        }
-        return $items;
+        return $user->favorites_items ?? [];
     }
 
     public function favorites_items_update(Request $request){

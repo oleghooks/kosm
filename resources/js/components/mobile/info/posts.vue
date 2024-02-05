@@ -14,13 +14,16 @@ export default {
     methods: {
         changeOrder: function(value){
             emit('change_order', value)
+        },
+        info: function (){
+
         }
     }
 }
 </script>
 
 <template>
-    <div class="posts">
+    <div class="">
         <div style="display: flex" class="orders" v-if="items.length > 0">
             <div :class="{'order_active': currentOrder === 'post_date'}" v-on:click="changeOrder('post_date')">По дате</div>
             <div :class="{'order_active': currentOrder === 'popular'}" v-on:click="changeOrder('popular')">По популярности</div>
