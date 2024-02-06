@@ -55,6 +55,13 @@ Route::middleware('auth')->group(function () {
 
     });
 
+    Route::controller(\App\Http\Controllers\StoreController::class)->group(function () {
+        Route::get('store.list', 'list');
+        Route::get('store.add', 'add');
+        Route::get('store.edit', 'edit');
+
+    });
+
 
     Route::get('/parser', [ParserController::class, 'parse']);
 });

@@ -10,7 +10,7 @@ export default {
 <template>
     <div class="info-item">
         <photos :item="item" :cart_items="cart_items"  :favorites="favorites" />
-        <div class="desc" v-html="item.text.replace(/([^>])\n/g, '$1<br/>')"></div>
+        <div class="desc" v-html="item.text?.replace(/([^>])\n/g, '$1<br/>')"></div>
         {{item.post_date}}
         <div style="display: flex" class="info-item-stats">
             <div class="views"><svg fill="none" height="16px" viewBox="0 0 16 16" width="16px" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><path d="M9.5 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"></path><path clip-rule="evenodd" d="M15.5 8c0-1-3-5-7.5-5S.5 7 .5 8s3 5 7.5 5 7.5-4 7.5-5zm-4 0a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z" fill-rule="evenodd"></path></g></svg> {{item.views}}</div>

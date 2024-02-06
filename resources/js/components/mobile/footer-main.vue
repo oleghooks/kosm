@@ -21,8 +21,8 @@ export default {
         <div class="orders" v-on:click="changePage(6)"></div>
         <p>Заказы</p>
     </div>
-    <div :class="{'active': currentPage === 4}">
-        <div class="profile" v-on:click="changePage(4)"></div>
+    <div :class="{'active': currentPage === 7}">
+        <div class="profile" v-on:click="changePage(7)"></div>
         <p>Профиль</p>
     </div>
 </div>

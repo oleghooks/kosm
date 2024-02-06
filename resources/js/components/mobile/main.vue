@@ -10,8 +10,9 @@ import FooterMain from "@/components/mobile/footer-main.vue";
 import {post} from "@/post.js";
 import Posts from "@/components/right-side/info/posts.vue";
 import Orders from "@/components/mobile/orders.vue";
+import Store from "@/components/mobile/store.vue";
 export default {
-    components: {Orders, Posts, FooterMain, Post, Cart, Info, List},
+    components: {Store, Orders, Posts, FooterMain, Post, Cart, Info, List},
     data(){
         return{
             currentPage: 1,
@@ -169,6 +170,7 @@ export default {
         <div :class="{'active': (currentPage === 4 && !isLoad)}"><post v-if="info.items.length > 0" :cart_items="cart_items" :favorites="favorites" :item="info.items[info.select_item]" /></div>
         <div :class="{'active': (currentPage === 5 && !isLoad)}"><post v-for="(item, index) in favorites" :item="item" :cart_items="cart_items"  :favorites="favorites" /></div>
         <div :class="{'active': (currentPage === 6 && !isLoad)}"><orders v-if="currentPage === 6" /></div>
+        <div :class="{'active': (currentPage === 7 && !isLoad)}"><store v-if="currentPage === 7" /></div>
         <div>5</div>
         <div class="load" :class="{'active': isLoad}"></div>
     </div>
