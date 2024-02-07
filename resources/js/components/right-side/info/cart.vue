@@ -32,7 +32,7 @@ export default {
         calc: function(){
 
             this.allSumm = 0;
-            this.cart_items.forEach(item => {
+            this.cart_items?.forEach(item => {
                 if(item.provide_id === this.provide_id)
                     this.allSumm = this.allSumm + (item.price * item.count);
             });
@@ -50,7 +50,7 @@ export default {
 <template>
     <div class="cart">
         <div style="">
-            <div  class="info-item" v-for="(item, index) in cart_items.filter(items => items.provide_id === provide_id)">
+            <div  class="info-item" v-for="(item, index) in cart_items?.filter(items => items.provide_id === provide_id)">
 
                 <div>
                     <div style="float: right;">

@@ -60,6 +60,9 @@ class StoreController extends Controller
 
     public function list(){
         $list = Store::where('user_id', Auth::id())->where('count', '>', 0)->get();
+        foreach ($list as &$item) {
+            $item->photos = json_decode($item->photos);
+        }
         return $list;
     }
 
@@ -67,13 +70,26 @@ class StoreController extends Controller
         $request->validate([
             'item' => 'required'
         ]);
-        $item = $request->input('item');
+        $item = (Object) $request->input('item');
         $item_info = Store::find($item->id);
         if($item_info->user_id === Auth::id()){
             $item_info->text = $item->text;
-            $item_info->price_in = $item->price_in;
+            $item_info->name = $item->name;
             $item_info->price_out = $item->price_out;
             $item_info->save();
         }
+    }
+
+    public function info(Request $request){
+        $request->validate([
+            'id' => 'required'
+        ]);
+
+        $id = $request->input('id');
+        $store = Store::where('id', $id)->where('user_id', Auth::id())->first();
+        if($store){
+            $store->photos = json_decode($store->photos);
+        }
+        return $store;
     }
 }

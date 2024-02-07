@@ -22,7 +22,11 @@ export default {
         <p>Заказы</p>
     </div>
     <div :class="{'active': currentPage === 7}">
-        <div class="profile" v-on:click="changePage(7)"></div>
+        <div class="store" v-on:click="changePage(7)"></div>
+        <p>Магазин</p>
+    </div>
+    <div :class="{'active': currentPage === 8}">
+        <div class="profile" v-on:click="changePage(8)"></div>
         <p>Профиль</p>
     </div>
 </div>
@@ -80,5 +84,11 @@ export default {
 }
 .footer > div.active >  div.profile{
     background-image: url("/img/icons/profile-active.png");
+}
+.footer > div >  div.store{
+    background-image: url("/img/icons/store.png");
+}
+.footer > div.active >  div.store{
+    background-image: url("/img/icons/store-active.png");
 }
 </style>

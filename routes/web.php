@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(\App\Http\Controllers\StoreController::class)->group(function () {
         Route::get('store.list', 'list');
+        Route::post('store.info', 'info');
         Route::post('store.add', 'add');
         Route::post('store.edit', 'edit');
 
