@@ -12,7 +12,7 @@ class StoreController extends Controller
         /**
          *JSON IN
          * {
-         *     item_id,
+         *     id,
          *     attach_index,
          *     name,
          *     text,
@@ -26,14 +26,15 @@ class StoreController extends Controller
         $request->validate([
             'items' => 'required'
         ]);
-        $items = json_decode($request->input('items'));
+        $items = $request->input('items');
         foreach ($items as $item) {
-            $check_item = Store::where('item_id', $item->id)
+            $item = (object) $item;
+            $check_item = Store::where('item_id', $item->item_id)
                                     ->where('attach_index', $item->attach_index)
                                     ->where('user_id', Auth::id())
                                     ->first();
             if($check_item){
-                $check_item->name = $item->name;
+                $check_item->name = $item->name ?? "Без названия";
                 $check_item->count = $check_item->count + $item->count;
                 $check_item->price_in = $item->price_in;
                 $check_item->price_out = $item->price_out;
@@ -42,9 +43,9 @@ class StoreController extends Controller
             }
             else {
                 Store::create([
-                    'item_id' => $item->id,
+                    'item_id' => $item->item_id,
                     'attach_index' => $item->attach_index,
-                    'name' => $item->name,
+                    'name' => $item->name ?? "Без названия",
                     'text' => $item->text,
                     'price_in' => $item->price_in,
                     'price_out' => $item->price_out,
@@ -66,7 +67,7 @@ class StoreController extends Controller
         $request->validate([
             'item' => 'required'
         ]);
-        $item = json_decode($request->input('item'));
+        $item = $request->input('item');
         $item_info = Store::find($item->id);
         if($item_info->user_id === Auth::id()){
             $item_info->text = $item->text;

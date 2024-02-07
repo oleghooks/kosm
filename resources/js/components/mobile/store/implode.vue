@@ -4,6 +4,7 @@ import Info from "@/components/mobile/store/implode/info.vue";
 
 export default {
     components: {List, Info},
+    props: ['back_store_main'],
     data(){
         return{
             currentPage: 0,
@@ -24,7 +25,7 @@ export default {
             let url = '/orders.list';
             let response = await fetch(url);
             this.implode_list = await response.json();
-        }
+        },
     },
     mounted() {
         this.list();
@@ -35,7 +36,7 @@ export default {
 <template>
     <div v-if="currentPage === 1" v-on:click="currentPage = 0" class="back"><</div>
     <list v-if="currentPage === 0" :list="implode_list" :info="info"></list>
-    <info v-if="currentPage === 1" :info="info_order"></info>
+    <info v-if="currentPage === 1" :info="info_order" :back_store_main="back_store_main"></info>
 </template>
 
 <style scoped>

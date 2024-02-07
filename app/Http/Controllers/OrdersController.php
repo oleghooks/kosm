@@ -66,6 +66,9 @@ class OrdersController extends Controller
             $summ = $summ + ($item->count * $item->price);
             $item_info = ProvidersItem::find($item->item_id);
             $item_info->attachments = json_decode($item_info->attachments);
+            $item->is_check = 0;
+            $item->name = "";
+            $item->price_out = $item->price * 2;
             $item->info = $item_info;
         }
         $info->summ = $summ;
