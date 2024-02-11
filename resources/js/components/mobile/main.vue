@@ -186,13 +186,13 @@ export default {
 }
 .back, .cart_icon{
     position: fixed;
-    padding: 9px;
+    padding: 6px;
     margin: 10px;
-    width: 30px;
+    width: 23px;
     text-align: center;
     background: #fff;
     border-radius: 50%;
-    font-size: 25px;
+    font-size: 18px;
     font-weight: bold;
     color: #237bc7;
     text-shadow: 0 0 black;

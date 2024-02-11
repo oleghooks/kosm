@@ -37,12 +37,12 @@ export default {
 
 <template>
     <div v-if="currentPage === 0">
-        <button class="button-blue button" v-on:click="currentPage = 1;">Загрузить товары</button>
+        <div style="text-align: center;"><button class="button-blue button" v-on:click="currentPage = 1;">Загрузить товары</button></div>
+
         <list :items="items" :info="info" />
     </div>
     <implode  v-if="currentPage === 1" :back_store_main="back" />
-    <div v-if="currentPage === 2" v-on:click="back" class="back"><</div>
-    <info v-if="currentPage === 2" :info="store_info"  />
+    <info v-if="currentPage === 2" :info="store_info" :back_store_main="back"  />
 </template>
 
 <style scoped>

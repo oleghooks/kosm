@@ -1,0 +1,13 @@
+.header_page_is_back, .header_page{
+    font-size: 16px;
+    font-weight: bold;
+    padding-left: 64px;
+    padding-top: 15px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #bbb;
+    margin-bottom: 10px;
+    color: #2E5BAD;
+}
+.header_page{
+    padding-left: 10px;
+}
