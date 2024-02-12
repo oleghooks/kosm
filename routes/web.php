@@ -62,6 +62,10 @@ Route::middleware('auth')->group(function () {
         Route::post('store.edit', 'edit');
 
     });
+    Route::controller(\App\Http\Controllers\SaleController::class)->group(function () {
+        Route::post('sales.add', 'add');
+
+    });
 
 
     Route::get('/parser', [ParserController::class, 'parse']);

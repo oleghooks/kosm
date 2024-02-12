@@ -1,8 +1,10 @@
 <script>
 import {post} from "@/post.js";
+import useEventsBus from "@/EventBus.js";
+const {emit}=useEventsBus();
 
 export default {
-    props: ['info'],
+    props: ['info', 'back'],
     data(){
         return{
             sale: {
@@ -10,20 +12,26 @@ export default {
                 price_out: this.info.price_out,
                 name: "",
                 phone: "",
-                note: ""
+                note: "",
+                source: "vk"
             }
         }
     },
     methods: {
         add: async function(){
+
+            emit('is_load_show', 1);
             await post('/sales.add', {
                 id: this.info.id,
                 count: this.sale.count,
                 price_out: this.sale.price_out,
                 name: this.sale.name,
                 phone: this.sale.phone,
-                note: this.sale.note
+                note: this.sale.note,
+                source: this.sale.source
             });
+            emit('is_load_hidden', 1);
+            this.back();
         }
     }
 }
@@ -43,6 +51,15 @@ export default {
         </div>
     </div>
     <div class="sale_info">
+        <p>
+            <select v-model="sale.source">
+                <option value="vk">ВК</option>
+                <option value="telegram">Телеграм</option>
+                <option value="saraphan">Сарафанка</option>
+                <option value="main">Себе</option>
+                <option value="other">Другое</option>
+            </select>
+        </p>
         <button v-on:click="sale.count++">+</button>
         <input type="number" v-model="sale.count">
         <button v-on:click="sale.count--">-</button>
@@ -54,7 +71,7 @@ export default {
         <textarea placeholder="Заметка о клиенте" v-model="sale.note"></textarea>
     </div>
     <div style="padding: 10px; text-align: center">
-        <button class="button button-blue">Сохранить</button>
+        <button class="button button-blue" v-on:click="add">Сохранить</button>
     </div>
 </template>
 

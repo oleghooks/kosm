@@ -2,7 +2,6 @@
 
 import {post} from "@/post.js";
 import Sale from "@/components/mobile/store/info/sale.vue";
-
 export default {
     components: {Sale},
     props: ['info', 'back_store_main'],
@@ -49,7 +48,7 @@ export default {
     </div>
     <div v-if="currentPage === 1">
         <div v-on:click="currentPage = 0" class="back"><</div>
-        <sale v-if="currentPage === 1" :info="info"/>
+        <sale v-if="currentPage === 1" :info="info" :back="back_store_main"/>
     </div>
 </template>
 
