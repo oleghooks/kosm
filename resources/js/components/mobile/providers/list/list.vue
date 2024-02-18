@@ -1,10 +1,12 @@
 <script>
+import {post} from "@/post.js";
+
 export default {
-    props: ['providers'],
+    props: ['providers', 'list', 'info'],
     methods: {
         favorite: async function(id){
             await post('providers.favorite', {id: id});
-            await this.getList();
+            await this.list();
         }
     }
 }

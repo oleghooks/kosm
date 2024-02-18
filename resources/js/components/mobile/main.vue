@@ -1,18 +1,14 @@
 <script>
-import List from "@/components/mobile/list.vue";
 import {watch} from "vue";
 import useEventsBus from "@/EventBus.js";
-import Info from "@/components/mobile/info.vue";
-import Cart from "@/components/mobile/info/cart.vue";
-import Post from "@/components/mobile/info/posts/post.vue";
 import FooterMain from "@/components/mobile/footer-main.vue";
+import Providers from "@/components/mobile/providers/main.vue";
 
 import {post} from "@/post.js";
-import Posts from "@/components/right-side/info/posts.vue";
 import Orders from "@/components/mobile/orders.vue";
 import Store from "@/components/mobile/store.vue";
 export default {
-    components: {Store, Orders, Posts, FooterMain, Post, Cart, Info, List},
+    components: {Store, Orders, Providers, FooterMain},
     data(){
         return{
             currentPage: 1,
@@ -31,13 +27,6 @@ export default {
         }
     },
     watch: {
-        cart_items: {
-            async handler(newCartItems){
-                await post('/cart.update', {cart: newCartItems});
-                this.calc();
-            },
-            deep: true
-        },
         favorites:{
             async handler(newFavorites){
                 await post('/user.favorites.update', {items: newFavorites});
@@ -55,48 +44,6 @@ export default {
                 });
             }
         },
-        cart_add: function(item_id, attach_index, count, price, provide_id){
-            this.cart_items.push({
-                item_id: item_id,
-                attach_index: attach_index,
-                count: count,
-                price: price,
-                provide_id: provide_id
-            });
-        },
-        cart_list: async function(){
-           let response = await fetch('/cart.list');
-           this.cart_items = await response.json();
-        },
-        favorites_list: async function(){
-            let response = await fetch('/user.favorites');
-            this.favorites = await response.json();
-        },
-        infoProvider: async function(id, changeOrder = false){
-            this.currentPage = 2;
-            if(this.info.id === id && changeOrder === false) {
-                this.info.page++;
-            }
-            else{
-                this.isLoad = true;
-                this.info.items = [];
-                this.info.provider = {};
-            }
-            this.info.id = id;
-            let url = '/providers.info?id='+id+'&order='+this.info.order+'&p='+this.info.page;
-            let response = await fetch(url);
-            response = await response.json();
-            response.items.forEach((item) => {
-                this.info.items.push(item);
-            });
-            this.info.provider = response.provider;
-            this.isLoad = false;
-            this.calc();
-        },
-        changeOrder: async function(type){
-            this.info.order = type;
-            await this.infoProvider(this.info.provider.id, true);
-        },
         changePage: function (index){
             this.currentPage = index;
         },
@@ -109,29 +56,8 @@ export default {
         }
     },
     mounted() {
-        this.cart_list();
-        this.favorites_list();
         const { bus } = useEventsBus();
-        watch(()=>bus.value.get('cart_add'), (val) => {
-            // destruct the parameters
-            let [item] = val ?? [];
-            this.cart_add(item.item_id, item.attach_index, item.count, item.price, this.info.provider.id);
-        })
-        watch(()=>bus.value.get('cart_delete'), (val) => {
-            // destruct the parameters
-            let [item] = val ?? [];
-            this.cart_items.splice(this.cart_items.findIndex(items => items === item), 1);
-        })
-        watch(()=>bus.value.get('favorite_add'), (val) => {
-            // destruct the parameters
-            let [item] = val ?? [];
-            this.favorites.push(item);
-        })
-        watch(()=>bus.value.get('favorite_remove'), (val) => {
-            // destruct the parameters
-            let [item] = val ?? [];
-            this.favorites.splice(item, 1);
-        })
+
         watch(()=>bus.value.get('is_load_show'), (val) => {
             this.isLoad = true;
         })
@@ -161,15 +87,9 @@ export default {
 
 <template>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <div v-if="currentPage > 1 && currentPage < 5" v-on:click="currentPage = currentPage - 1" class="back"><</div>
-    <div v-if="currentPage === 2" v-on:click="currentPage = 3" class="cart_icon"><b>{{this.info.allSumm}} руб</b></div>
     <div class="main">
-        <div :class="{'active': (currentPage === 1 && !isLoad)}"><list :cart_items="cart_items"></list></div>
-        <div :class="{'active': (currentPage === 2 && !isLoad)}"><info  :cart_items="cart_items" :favorites="favorites" :info="info"/></div>
-        <div :class="{'active': (currentPage === 3 && !isLoad)}"><cart v-if="currentPage === 3" :cart_items="cart_items" :info="info" /></div>
-        <div :class="{'active': (currentPage === 4 && !isLoad)}"><post v-if="info.items.length > 0" :cart_items="cart_items" :favorites="favorites" :item="info.items[info.select_item]" /></div>
-        <div :class="{'active': (currentPage === 5 && !isLoad)}"><post v-for="(item, index) in favorites" :item="item" :cart_items="cart_items"  :favorites="favorites" /></div>
-        <div :class="{'active': (currentPage === 6 && !isLoad)}"><orders v-if="currentPage === 6" /></div>
+        <div :class="{'active': (currentPage === 1 && !isLoad)}"><providers></providers></div>
+         <div :class="{'active': (currentPage === 6 && !isLoad)}"><orders v-if="currentPage === 6" /></div>
         <div :class="{'active': (currentPage === 7 && !isLoad)}"><store v-if="currentPage === 7" /></div>
         <div>5</div>
         <div class="load" :class="{'active': isLoad}"></div>

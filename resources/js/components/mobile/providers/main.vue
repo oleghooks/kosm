@@ -1,11 +1,12 @@
 <script>
 import useEventsBus from "@/EventBus.js";
-import Groups from "@/components/mobile/list/groups.vue";
+import Groups from "@/components/mobile/providers/list/groups.vue";
 import {post} from "@/post.js";
 import List from "@/components/mobile/providers/list/list.vue";
+import Info from "@/components/mobile/providers/info/info.vue";
 const {emit}=useEventsBus();
 export default {
-    components: {List, Groups},
+    components: {Info, List, Groups},
     props: ['cart_items'],
     data(){
         return{
@@ -13,11 +14,13 @@ export default {
             ],
             currentItem: false,
             page: 0,
+            provider_id: 0,
         }
     },
     methods: {
         info: function(id){
-            emit('info', id);
+            this.provider_id = id;
+            this.page = 2;
         },
         getList: async function(id){
             if(id) {
@@ -48,8 +51,9 @@ export default {
     <groups v-if="page === 1" :cancel="cancel"></groups>
     <div v-if="page === 0">
         <div style="text-align: right;"><button class="button button-blue" v-on:click="page = 1">Добавить поставщиков</button></div>
-        <list :providers="providers" />
+        <list :providers="providers" :list="getList" :info="info" />
     </div>
+    <info v-if="page === 2" :provider_id="provider_id" :back="cancel"></info>
 </template>
 
 <style>

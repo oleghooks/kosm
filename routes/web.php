@@ -39,6 +39,9 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(\App\Http\Controllers\CartController::class)->group(function () {
         Route::post('cart.update', 'update');
+        Route::post('cart.add', 'save');
+        Route::post('cart.delete', 'delete');
+        Route::get('cart.info', 'info');
         Route::get('cart.list', 'list');
         Route::post('cart.make', 'make');
         Route::get('cart.items.info', 'items_info');

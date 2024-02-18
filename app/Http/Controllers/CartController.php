@@ -9,6 +9,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use ZipArchive;
 
+
+/***
+ *  CART.JSON info {
+ *
+ *  }
+ *
+ * ***/
 class CartController extends Controller
 {
     public function update(Request $request){
@@ -25,7 +32,60 @@ class CartController extends Controller
             $cart->save();
         }
     }
+    public function save(Request $request){
+        $request->validate([
+            'provider_id' => 'required',
+            'item_id' => 'required',
+            'attach_index' => 'required'
+        ]);
+        $item_info = ProvidersItem::where('provide_id', $request->input('provider_id'))
+            ->where('id', $request->input('item_id'))
+            ->first();
+        if($item_info){
+            $check_cart = Cart::where('item_id', $request->input('item_id'))
+                ->where('user_id', Auth::id())
+                ->where('attach_index', $request->input('attach_index'))
+                ->first();
+            if($check_cart){
+                $check_cart->count = $request->input('count');
+                $check_cart->price = $request->input('price');
+                $check_cart->save();
+            }
+            else
+                Cart::create([
+                    'item_id' => $request->input('item_id'),
+                    'provider_id' => $request->input('provider_id'),
+                    'attach_index' => $request->input('attach_index'),
+                    'count' => $request->input('count'),
+                    'price' => $request->input('price'),
+                    'user_id' => Auth::id(),
+                ]);
+        }
+    }
 
+    public function delete(Request $request){
+        $request->validate([
+            'id' => 'required'
+        ]);
+
+        $item = Cart::find($request->input('id'));
+        if($item->user_id === Auth::id())
+                $item->delete();
+    }
+
+    public function info(Request $request){
+        $request->validate([
+            'provider_id' => 'required'
+        ]);
+        $items = Cart::where('provider_id', $request->input('provider_id'))
+            ->where('user_id', Auth::id())
+            ->get();
+        foreach ($items as &$item) {
+            $item->info = ProvidersItem::find($item->item_id);
+            $item->info->attachments = json_decode($item->info->attachments);
+        }
+        return $items;
+    }
     public function list(){
         $cart = Cart::where('user_id', Auth::id())->first();
         if(isset($cart->cart))
@@ -35,23 +95,15 @@ class CartController extends Controller
     }
 
     public function make(Request $request){
-
+        $request->validate([
+            'id' => 'required'
+        ]);
         $provider_id = (int)$request->input('id');
-        $cart = Cart::where('user_id',  Auth::id())->first();
-        $items = [];
-        $cart_items = json_decode($cart->cart);
-        foreach($cart_items as $key => $item){
-            if($item->provide_id === $provider_id)
-            {
-                $items[] = $item;
-                unset($cart_items[$key]);
-            }
-        }
+        $items = Cart::where('user_id',  Auth::id())->where('provider_id', $provider_id)->get();
         if(count($items) > 0)
             OrdersController::add($items, $provider_id);
-        $cart_items = json_encode($cart_items);
-        $cart->cart = $cart_items;
-        $cart->save();
+        foreach ($items as $item)
+            $item->delete();
     }
 
     public function items_info(){

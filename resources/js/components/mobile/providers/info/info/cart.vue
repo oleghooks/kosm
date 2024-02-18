@@ -5,7 +5,9 @@ export default {
     props: [
         'changeCurrentInfoItem',
         'cart_items',
-        'info'
+        'info',
+        'provider_id',
+        'back'
     ],
     data(){
         return {
@@ -33,49 +35,53 @@ export default {
 
             this.allSumm = 0;
             this.allCount = 0;
-            this.cart_items.forEach(item => {
-                if(item.provide_id === this.info.provider.id)
-                    this.allSumm = this.allSumm + (item.price * item.count);
-                    this.allCount = this.allCount + item.count;
+            this.items.forEach(item => {
+                this.allSumm = this.allSumm + (item.price * item.count);
+                this.allCount = this.allCount + item.count;
             });
         },
         select_item: function(index){
             emit('select_item', index);
         },
         make_cart: function(){
-            emit('make_cart', this.info.provider.id);
+            emit('make_cart', this.provider_id);
         },
         cart_delete: function(item){
             emit('cart_delete', item);
+            this.items.splice(this.items.findIndex(items => items === item), 1);
+        },
+        cart_save: function(index){
+            emit('cart_add', this.items[index]);
         },
         cart_items_load: async function (){
-            let response = await fetch('/cart.items.info');
+            let response = await fetch('/cart.info?provider_id='+this.provider_id);
             this.items = await response.json();
+            this.calc();
         }
     },
     mounted() {
-        this.calc();
         this.cart_items_load();
     }
 }
 </script>
 
 <template>
+    <div class="back" v-on:click="back"><</div>
     <div class="cart">
-        <div  class="info-item" v-for="(item, index) in cart_items.filter(items => items.provide_id === info.provider.id)">
+        <div  class="info-item" v-for="(item, index) in items">
 
             <div>
                 <div style="float: right;">
                 <span style="" v-on:click="cart_delete(item)">X</span>
 
             </div>
-                <img v-on:click="select_item(info.items.findIndex(item_full => item_full.id === item.item_id))" :src="items.find(item_full => item_full.id === item.item_id)?.attachments[item.attach_index]?.photo?.sizes[2]?.url">
+                <img v-on:click="select_item()" :src="item.info?.attachments[item.attach_index]?.photo?.sizes[2]?.url">
                 <div class="price">
-                    <button v-on:click="item.count--;">-</button>
-                    <input type="text" v-model="cart_items.filter(items => items.provide_id === info.provider.id)[index].count">
-                    <button v-on:click="item.count++;">+</button>
+                    <button v-on:click="item.count--; cart_save(index)">-</button>
+                    <input type="text" v-model="item.count"  @keyup="cart_save(index)">
+                    <button v-on:click="item.count++; cart_save(index)">+</button>
                     по
-                    <input type="text" v-model="cart_items.filter(items => items.provide_id === info.provider.id)[index].price"> <b>руб.</b>
+                    <input type="text" v-model="item.price" @keyup="cart_save(index)"> <b>руб.</b>
                 </div>
             </div>
 

@@ -1,5 +1,5 @@
 <script>
-import Photos from "@/components/mobile/info/posts/photos.vue";
+import Photos from "@/components/mobile/providers/info/info/posts/photos.vue";
 
 export default {
     components: {Photos},
