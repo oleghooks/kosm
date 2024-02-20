@@ -148,7 +148,7 @@ export default {
         <div class="cart_icon" v-on:click="page = 1"><b>{{this.info.allSumm}} руб</b></div>
         <provide-info :infoProvider="info.provider"/>
 
-        <div style="display: flex; margin: 10px 0px;" class="orders" v-if="info.items.length > 0">
+        <div style="display: flex; margin: 10px 0px;" class="orders">
             <div :class="{'order_active': info.order === 'post_date'}" v-on:click="changeOrder('post_date')">По дате</div>
             <div :class="{'order_active': info.order === 'popular'}" v-on:click="changeOrder('popular')">По популярности</div>
         </div>

@@ -50,13 +50,21 @@ class ProvidersController extends Controller
         if($provide->id > 0){
             if((time() - $provide->last_parser) > 86400)
                 $this->updatePostsGroup($id);
-            if($order_by == 'popular')
-            $items = ProvidersItem::where('provide_id', $provide->id)
-                ->where('post_date', '>', (time() - 864000))
-                ->orderBy($order_by, 'DESC')
-                ->limit($limit)
-                ->offset($offset)
-                ->get();
+            if($order_by == 'popular') {
+                $items = ProvidersItem::where('provide_id', $provide->id)
+                    ->where('post_date', '>', (time() - 864000))
+                    ->orderBy($order_by, 'DESC')
+                    ->limit($limit)
+                    ->offset($offset)
+                    ->get();
+                if(count($items) === 0)
+                    $items = ProvidersItem::where('provide_id', $provide->id)
+                        ->orderBy($order_by, 'DESC')
+                        ->limit($limit)
+                        ->offset($offset)
+                        ->get();
+
+            }
             else
                 $items = ProvidersItem::where('provide_id', $provide->id)
                 ->orderBy($order_by, 'DESC')
@@ -130,10 +138,15 @@ class ProvidersController extends Controller
         $parse_id = $provide->type_id;
         if($provide->is_group === 1)
             $parse_id = "-".$parse_id;
-        $provide->last_parser = time();
-        $provide->save();
+        //$provide->last_parser = time();
+        //$provide->save();
+        $count_vk_items = json_decode(ParserController::vk('wall.get', [
+            'owner_id' => $parse_id,
+            'count' => 1,
+        ]));
+        $count_vk_items = $count_vk_items->response->count;
         if($provide->type === "vk"){
-            if($count_items > 200)
+            if($count_items > 200 || $count_vk_items < 100)
                 $max_count = 1;
             else
                 $max_count = 11;
@@ -145,8 +158,8 @@ class ProvidersController extends Controller
                     'offset' => 100 * $i
                 ]);
                 $response = json_decode($response);
-                if(ceil($response->response->count / 100 - 1) === $i)
-                    exit();
+                if($i > 0 && (ceil($response->response->count / 100 - 1) === $i))
+                    break;
                 foreach ($response->response->items as &$item) {
                     if ($item->text === "" && isset($item->copy_history)) {
                         $item->text = $item->copy_history[0]->text;
@@ -170,6 +183,8 @@ class ProvidersController extends Controller
                     ];
                 }
             }
+
+            //var_dump($items);
             if(count($items) > 0)
                 ProvidersItem::upsert($items,
                     ['post_id', 'provide_id'],

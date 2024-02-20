@@ -5,25 +5,15 @@ import FooterMain from "@/components/mobile/footer-main.vue";
 import Providers from "@/components/mobile/providers/main.vue";
 
 import {post} from "@/post.js";
-import Orders from "@/components/mobile/orders.vue";
-import Store from "@/components/mobile/store.vue";
+import Orders from "@/components/mobile/orders/main.vue";
+import Store from "@/components/mobile/store/main.vue";
 export default {
     components: {Store, Orders, Providers, FooterMain},
     data(){
         return{
             currentPage: 1,
             isLoad: false,
-            cart_items: [],
             favorites: [],
-            info: {
-                items: [],
-                provider: {},
-                order: 'popular',
-                select_item: 0,
-                page: 0,
-                id: 0,
-                allSumm: 0,
-            }
         }
     },
     watch: {
@@ -35,22 +25,15 @@ export default {
         },
     },
     methods: {
-        calc: function(){
-            if(this.info.provider.id > 0) {
-                this.info.allSumm = 0;
-                this.cart_items.forEach(item => {
-                    if (item.provide_id === this.info.provider.id)
-                        this.info.allSumm = this.info.allSumm + (item.price * item.count);
-                });
-            }
-        },
         changePage: function (index){
             this.currentPage = index;
         },
         make_cart: async function(id){
             this.isLoad = true;
-            let response = await post('/cart.make', {id: id})
-            this.cart_list();
+            let response = await post('/cart.make', {id: id});
+            response = await response.json();
+            emit('orders.list.load', 1);
+            emit('orders.info', response.id);
             this.currentPage = 6;
             this.isLoad = false;
         }
@@ -64,17 +47,8 @@ export default {
         watch(()=>bus.value.get('is_load_hidden'), (val) => {
             this.isLoad = false;
         })
-        watch(()=>bus.value.get('info'), (val) => {
-            let [item] = val ?? [];
-            this.infoProvider(item);
-        })
-        watch(()=>bus.value.get('change_order'), (val) => {
-            let [item] = val ?? [];
-            this.changeOrder(item);
-        })
         watch(()=>bus.value.get('select_item'), (val) => {
             let [item] = val ?? [];
-            this.info.select_item = item;
             this.currentPage = 4;
         })
         watch(()=>bus.value.get('make_cart'), (val) => {
@@ -89,8 +63,8 @@ export default {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <div class="main">
         <div :class="{'active': (currentPage === 1 && !isLoad)}"><providers></providers></div>
-         <div :class="{'active': (currentPage === 6 && !isLoad)}"><orders v-if="currentPage === 6" /></div>
-        <div :class="{'active': (currentPage === 7 && !isLoad)}"><store v-if="currentPage === 7" /></div>
+         <div :class="{'active': (currentPage === 6 && !isLoad)}"><orders /></div>
+        <div :class="{'active': (currentPage === 7 && !isLoad)}"><store /></div>
         <div>5</div>
         <div class="load" :class="{'active': isLoad}"></div>
     </div>
