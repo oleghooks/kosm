@@ -69,6 +69,10 @@ Route::middleware('auth')->group(function () {
         Route::post('sales.add', 'add');
 
     });
+    Route::controller(\App\Http\Controllers\ChatBotCOntroller::class)->group(function () {
+        Route::get('chatbot.test', 'test');
+
+    });
 
 
     Route::get('/parser', [ParserController::class, 'parse']);
