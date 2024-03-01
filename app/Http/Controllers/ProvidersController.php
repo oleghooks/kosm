@@ -162,8 +162,8 @@ class ProvidersController extends Controller
         $parse_id = $provide->type_id;
         if($provide->is_group === 1)
             $parse_id = "-".$parse_id;
-        //$provide->last_parser = time();
-        //$provide->save();
+        $provide->last_parser = time();
+        $provide->save();
         $count_vk_items = json_decode(ParserController::vk('wall.get', [
             'owner_id' => $parse_id,
             'count' => 1,

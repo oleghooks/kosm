@@ -1,5 +1,6 @@
 <script>
 import useEventsBus from "@/EventBus.js";
+import {post} from "@/post.js";
 const {emit}=useEventsBus();
 export default {
     props: ['item', 'cart_items', 'favorites'],
@@ -11,6 +12,10 @@ export default {
             input: {
                 price: "",
                 count: "",
+            },
+            chat_bot: {
+                text: "",
+                status: 0,
             }
         }
     },
@@ -76,6 +81,14 @@ export default {
                 this.favorite_remove();
             else
                 this.favorite_add();
+        },
+        chat_send: async function(){
+            this.chat_bot.status = 1;
+            await post('/chatbot.send', {
+                image_url: this.item.attachments[this.indexPhoto]?.photo?.sizes.at(-1)?.url,
+                text: this.chat_bot.text
+            });
+            this.chat_bot.status = 2;
         }
     },
     mounted() {
@@ -112,9 +125,25 @@ export default {
             <span v-if="cart_items.find(item_full => (item_full.item_id === item.id && item_full.attach_index === index))">{{cart_items.find(item_full => (item_full.item_id === item.id && item_full.attach_index === index))?.count}}</span>
         </div>
     </div>
+    <div class="chat-bot">
+        <div v-if="chat_bot.status === 0">
+            <input type="text" v-model="chat_bot.text" placeholder="Цена и описание"><button v-on:click="chat_send" class="button button-blue">Отправить в чат</button>
+        </div>
+        <div v-if="chat_bot.status === 1">Отправляем..</div>
+        <div v-if="chat_bot.status === 2">Отправлено</div>
+    </div>
 </template>
 
 <style scoped>
+.chat-bot{
+    text-align: center;
+}
+.chat-bot input{
+    width: 150px;
+    padding: 5px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+}
 .cart_active .cart{
     display: block;
 }

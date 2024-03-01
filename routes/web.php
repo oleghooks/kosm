@@ -73,6 +73,9 @@ Route::middleware('auth')->group(function () {
     Route::controller(\App\Http\Controllers\ChatBotCOntroller::class)->group(function () {
 
         Route::get('chatbot.test', 'test');
+        Route::post('chatbot.send', 'sendToChat');
+        Route::get('chatbot.settings', 'settings');
+        Route::post('chatbot.settings', 'settings_update');
 
 
 

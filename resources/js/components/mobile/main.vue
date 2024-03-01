@@ -3,12 +3,13 @@ import {watch} from "vue";
 import useEventsBus from "@/EventBus.js";
 import FooterMain from "@/components/mobile/footer-main.vue";
 import Providers from "@/components/mobile/providers/main.vue";
+import Profile from "@/components/mobile/profile/main.vue";
 
 import {post} from "@/post.js";
 import Orders from "@/components/mobile/orders/main.vue";
 import Store from "@/components/mobile/store/main.vue";
 export default {
-    components: {Store, Orders, Providers, FooterMain},
+    components: {Store, Orders, Providers, FooterMain, Profile},
     data(){
         return{
             currentPage: 1,
@@ -65,7 +66,7 @@ export default {
         <div :class="{'active': (currentPage === 1 && !isLoad)}"><providers></providers></div>
          <div :class="{'active': (currentPage === 6 && !isLoad)}"><orders /></div>
         <div :class="{'active': (currentPage === 7 && !isLoad)}"><store /></div>
-        <div>5</div>
+        <div :class="{'active': (currentPage === 8 && !isLoad)}"><profile /></div>
         <div class="load" :class="{'active': isLoad}"></div>
     </div>
     <footer-main :currentPage="currentPage" :changePage="changePage" ></footer-main>
