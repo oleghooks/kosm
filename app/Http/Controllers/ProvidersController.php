@@ -126,8 +126,32 @@ class ProvidersController extends Controller
         return ['id' => $provide->id];
     }
 
+    public function test1(){
+        echo "11";
+    }
+
     public function test(Request $request){
-        $this->updatePostsGroupTest(9);
+        $peer_id = 424842978;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://m.vk.com/mail");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Cookie:'.env('COOKIE_VK'),
+'User-Agent:Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36',
+'X-Requested-With:XMLHttpRequest'));
+        //curl_setopt($ch, CURLOPT_POSTFIELDS, "offset=0&_ajax=1");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, "peer_id=".$peer_id."&_ajax=1");
+        //curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        $output = curl_exec($ch);
+        curl_close($ch);
+        //$response = json_decode($output);
+        $response = json_decode($output);
+        //var_dump($response);
+        //echo json_encode($response->data[0]->members);
+        if($response->data[0]->msgs)
+          echo json_encode($response->data[0]->msgs);
     }
 
 
