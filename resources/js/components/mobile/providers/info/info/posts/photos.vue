@@ -86,7 +86,8 @@ export default {
             this.chat_bot.status = 1;
             await post('/chatbot.send', {
                 image_url: this.item.attachments[this.indexPhoto]?.photo?.sizes.at(-1)?.url,
-                text: this.chat_bot.text
+                text: this.chat_bot.text,
+                attach_index: this.indexPhoto
             });
             this.chat_bot.status = 2;
         }

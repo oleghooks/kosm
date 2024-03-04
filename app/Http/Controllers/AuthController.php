@@ -5,10 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use VK\OAuth\Scopes\VKOAuthUserScope;
-use VK\OAuth\VKOAuth;
-use VK\OAuth\VKOAuthDisplay;
-use VK\OAuth\VKOAuthResponseType;
 
 class AuthController extends Controller
 {
@@ -53,24 +49,14 @@ class AuthController extends Controller
         //926b9c87ca58f3d8b3
         else {
 
-            $oauth = new VKOAuth();
-            $client_id = env('VK_CLIENT_ID');
-            $redirect_uri = env('VK_REDIRECT_URI');
-            $display = VKOAuthDisplay::PAGE;
-            $scope = array(VKOAuthUserScope::OFFLINE, VKOAuthUserScope::PHOTOS);
-            $state = 'secret_state_code';
 
-            $browser_url = $oauth->getAuthorizeUrl(VKOAuthResponseType::CODE, $client_id, $redirect_uri, $display, $scope, $state);
-            echo "<a href='".$browser_url."'>ВК авторизация</a>";
-
-            /*
             $params = [
                 'client_id' => env('VK_CLIENT_ID'),
-                'scope' => 'offline,photos',
+                'scope' => 'offline ',
                 'display' => 'popup',
                 'redirect_uri' => env('VK_REDIRECT_URI')
             ];
-            echo "<a href='https://oauth.vk.com/authorize?".http_build_query($params)."'>ВК авторизация</a>";*/
+            echo "<a href='https://oauth.vk.com/authorize?".http_build_query($params)."'>ВК авторизация</a>";
         }
             //TODO доделать кнопку вк
     }

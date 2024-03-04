@@ -28,13 +28,22 @@ export default {
 </script>
 
 <template>
-    <p>Cookie VK</p>
-    <textarea v-model="chat_bot.cookie"></textarea>
-    <p>ID чата VK</p>
-    <input type="text" v-model="chat_bot.chat_id">
-    <p><button class="button button-blue" v-on:click="save">Сохранить</button></p>
+    <div style="text-align: center; padding: 10px;">
+        <p>Cookie VK</p>
+        <textarea v-model="chat_bot.cookie"></textarea>
+        <p>ID чата VK</p>
+        <input type="text" v-model="chat_bot.chat_id">
+        <p><button class="button button-blue" v-on:click="save">Сохранить</button></p>
+    </div>
 </template>
 
 <style scoped>
-
+input, textarea{
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid #bbb;
+}
+textarea{
+    min-height: 100px;
+}
 </style>
