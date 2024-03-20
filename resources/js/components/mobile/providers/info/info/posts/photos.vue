@@ -16,6 +16,7 @@ export default {
             chat_bot: {
                 text: "",
                 status: 0,
+                error: "",
             }
         }
     },
@@ -84,12 +85,19 @@ export default {
         },
         chat_send: async function(){
             this.chat_bot.status = 1;
-            await post('/chatbot.send', {
+            let response = await post('/chatbot.send', {
                 image_url: this.item.attachments[this.indexPhoto]?.photo?.sizes.at(-1)?.url,
                 text: this.chat_bot.text,
-                attach_index: this.indexPhoto
+                attach_index: this.indexPhoto,
+                item_id: this.item.id
             });
-            this.chat_bot.status = 2;
+            response = await response.json();
+            if(response.type !== 'error')
+                this.chat_bot.status = 2;
+            else{
+                this.chat_bot.status = 3;
+                this.chat_bot.error = response.desc;
+            }
         }
     },
     mounted() {
@@ -132,6 +140,7 @@ export default {
         </div>
         <div v-if="chat_bot.status === 1">Отправляем..</div>
         <div v-if="chat_bot.status === 2">Отправлено</div>
+        <div v-if="chat_bot.status === 3" style="color: #cb1212; font-weight: bold">{{chat_bot.error}}</div>
     </div>
 </template>
 

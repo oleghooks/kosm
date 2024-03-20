@@ -13,8 +13,8 @@ export default {
         <div class="home" v-on:click="changePage(1)"></div>
         <p>Главная</p>
     </div>
-    <div :class="{'active': currentPage === 5}">
-        <div class="favorites" v-on:click="changePage(5)"></div>
+    <div :class="{'active': currentPage === 9}">
+        <div class="favorites" v-on:click="changePage(9)"></div>
         <p>Избранное</p>
     </div>
     <div :class="{'active': currentPage === 6}">

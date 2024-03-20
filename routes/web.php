@@ -76,9 +76,15 @@ Route::middleware('auth')->group(function () {
         Route::post('chatbot.send', 'sendToChat');
         Route::get('chatbot.settings', 'settings');
         Route::post('chatbot.settings', 'settings_update');
-
-
-
     });
+
+    Route::controller(\App\Http\Controllers\PreOrdersController::class)->group(function () {
+
+        Route::get('preorders.list', 'list');
+        Route::post('preorders.add', 'add');
+        Route::post('preorders.delete', 'delete');
+    });
+
+
     Route::get('/parser', [ParserController::class, 'parse']);
 });

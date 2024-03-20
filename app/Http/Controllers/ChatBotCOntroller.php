@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChatBot;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +44,7 @@ class ChatBotCOntroller extends Controller
     }
     public function sendToChat(Request $request){
         $text = $request->input('text');
+        $item_id = $request->input('item_id');
         $image_url = $request->input('image_url');
         $attach_index = $request->input('attach_index');
         $user = User::find(Auth::id());
@@ -57,22 +59,47 @@ class ChatBotCOntroller extends Controller
         ]);
         $info = json_decode(utf8_encode($info_post));
         if(!isset($info->payload[1][0]->hash)) {
-            echo "Не удалось получить хэш";
-            var_dump($info);
-            var_dump($peer_id);
-            var_dump($info_post);
+            return [
+                'type' => 'error',
+                'desc' => 'Не удалось получить хэш. Обновите cookie'
+            ];
         }
         else {
             $hash_upload = $this->hashUpload();
             $hash =  $info->payload[1][0]->hash;
             $img = $this->uploadImage($hash_upload, $image_url);
-            if($img == "NULL")
-                echo "Не удалось загрузитть изображение";
+            if($img == "NULL") {
+                return [
+                    'type' => 'error',
+                    'desc' => 'Не удалось загрузить изображение. Обновите cookie'
+                ];
+
+            }
             $response = json_decode(utf8_encode($this->send($hash, 'photo:'.$img.':undefined', $text, $peer_id)));
-            if(isset($response->payload[1][0]->msg_id))
-                return ['response' => 'success'];
-            else
-                echo "Ошибка отправки";
+            if(isset($response->payload[1][0]->msg_id)) {
+                //Статусы: 0-создано
+                //  1 - не получилось отправить
+                //  2 - отправлено
+                //  3 - скрыто
+                ChatBot::create([
+                    'item_id' => $item_id,
+                    'attach_index' => $attach_index,
+                    'text_send' => $text,
+                    'status' => '2',
+                    'user_id' => Auth::id(),
+                    'msg_id' => $response->payload[1][0]->msg_id
+                ]);
+                return [
+                    'type' => 'success',
+                    'desc' => 'Сообщение успешно отправлено'
+                ];
+            }
+            else {
+                return [
+                    'type' => 'error',
+                    'desc' => 'Не удалось отправить сообщение. Обновите cookie'
+                ];
+            }
         }
     }
 
@@ -98,11 +125,9 @@ class ChatBotCOntroller extends Controller
     }
 
     public function hashUpload(){
-        //var_dump($_SERVER['REMOTE_ADDR']);
         $ch = curl_init("https://vk.com/im");
         curl_setopt($ch, CURLOPT_POST, 0);
         if(env('APP_URL') != 'kosm.ru') {
-            var_dump(env('APP_URL'));
             curl_setopt($ch, CURLOPT_PROXY, "45.145.169.49:63282");
             curl_setopt($ch, CURLOPT_PROXYUSERPWD, "9WhmAEgA:75Y3NVBa");
         }
