@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
         Route::get('preorders.list', 'list');
         Route::post('preorders.add', 'add');
         Route::post('preorders.delete', 'delete');
+        Route::post('preorders.edit', 'edit');
     });
 
 

@@ -52,6 +52,29 @@ class PreOrdersController extends Controller
             ];
 
     }
+    public function edit(Request $request){
+        $request->validate([
+            'preorder_id' => 'required|numeric',
+            'name' => 'required',
+            'count' => 'required|numeric'
+        ]);
+        $preorder = PreOrder::find($request->input('preorder_id'));
+        if($preorder->user_id === Auth::id()){
+            $preorder->name = $request->input('name');
+            $preorder->count = $request->input('count');
+            $preorder->save();
+            return[
+                'type' => 'success',
+                'desc' => 'Заказ успешно сохранен'
+            ];
+        }
+        else
+            return[
+                'type' => 'error',
+                'desc' => 'Ошибка при сохранении заказа'
+            ];
+
+    }
 
     public function delete(Request $request){
         $request->validate([
